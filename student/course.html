@@ -1,148 +1,115 @@
-<!-- /courses/:id sahifasi (Kurs View Page) -->
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="apple-touch-icon" sizes="180x180" href="../photos/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png">
-  <title>Kurs sahifasi | EdBase</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../photos/favicon-32x32.png">
+    <title>Kurs sahifasi | EdBase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-50 text-gray-800">
 
-  <!-- Header (oddiy) -->
-  <header class="bg-white shadow p-4 flex justify-between items-center">
-    <h1 class="text-lg font-bold">EdBase</h1>
-    <div class="text-sm">Salom, <span id="studentName">Talaba</span></div>
-  </header>
+    <!-- 🔹 Header -->
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-lg font-bold">EdBase</h1>
+        <div class="text-sm">Salom, <span id="studentName">Talaba</span></div>
+    </header>
 
-  <!-- Main layout: video + yon panel -->
-  <main class="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 mt-8 px-4">
+    <!-- Breadcrumb navigatsiya -->
+    <div class="max-w-7xl mx-auto mt-6 px-4">
+        <button id="breadcrumb" class="text-sm text-indigo-600 hover:underline">
+            ← Oldingi sahifaga qaytish
+        </button>
+    </div>
 
-    <!-- Video oynasi va dars kontenti -->
-    <section class="md:col-span-2 space-y-4">
-      <div class="bg-white rounded-xl shadow overflow-hidden">
-        <video id="lessonVideo" class="w-full" controls poster="https://via.placeholder.com/800x400">
-          <source id="videoSource" src="" type="video/mp4" />
-          Brauzeringiz video formatini qo‘llab-quvvatlamaydi.
-        </video>
-      </div>
-
-      <div class="bg-white rounded-xl shadow p-4">
-        <h2 class="text-xl font-semibold mb-2" id="lessonTitle">Dars nomi</h2>
-        <p id="lessonDescription">Dars haqida qisqacha ma'lumot...</p>
-
-        <div class="flex items-center justify-between mt-4">
-          <button id="markCompleted" class="text-sm px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">Tugatildi</button>
-          <button id="leaveReviewBtn" class="text-sm text-indigo-600 hover:underline">Sharh qoldirish</button>
+    <div class="max-w-7xl mx-auto px-4 mt-2">
+            <h2 id="courseName" class="text-xl font-bold text-gray-700">📘 Kurs nomi</h2>
         </div>
-      </div>
+    <!-- 🔸 Layout -->
+    <main class="max-w-7xl mx-auto grid md:grid-cols-3 gap-6 mt-8 px-4">
+        <!-- 🔹 Video & kontent -->
+        <section class="md:col-span-2 space-y-4">
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <video id="lessonVideo" class="w-full" controls poster="https://via.placeholder.com/800x400">
+                    <source id="videoSource" src="" type="video/mp4" />
+                    Brauzeringiz video formatini qo‘llab-quvvatlamaydi.
+                </video>
+            </div>
 
-      <!-- Sharh formasi -->
-      <div class="bg-white rounded-xl shadow p-4 hidden" id="reviewForm">
-        <label class="block mb-2 font-medium">Baholash (1–5):</label>
-        <select id="rating" class="border px-3 py-1 rounded">
-          <option value="5">5 - Zo‘r</option>
-          <option value="4">4 - Yaxshi</option>
-          <option value="3">3 - O‘rtacha</option>
-          <option value="2">2 - Yomon</option>
-          <option value="1">1 - Juda yomon</option>
-        </select>
-        <textarea id="reviewText" class="w-full mt-3 border rounded p-2" rows="3" placeholder="Izoh..."></textarea>
-        <button onclick="submitReview()" class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Yuborish</button>
-      </div>
-    </section>
+            <div class="bg-white rounded-xl shadow p-4">
+                <h2 class="text-xl font-semibold mb-2" id="lessonTitle">Dars nomi</h2>
+                <p id="lessonDescription" class="text-gray-700">Dars haqida qisqacha ma'lumot...</p>
 
-    <!-- Yon panel: Modullar va Darslar -->
-    <aside class="bg-white rounded-xl shadow p-4 space-y-3 h-fit">
-      <h3 class="font-bold text-lg">Darslar</h3>
-      <ul id="lessonList" class="space-y-2 text-sm">
-        <!-- JS orqali darslar joylanadi -->
-      </ul>
+                <div class="flex flex-wrap items-center justify-between mt-4 gap-2">
+                    <button id="markCompleted"
+                        class="text-sm px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
+                        ✅ Tugatildi
+                    </button>
 
-      <button id="completeCourse" class="w-full mt-6 bg-indigo-600 text-white px-4 py-2 rounded hidden">Kursni tugatdim</button>
-    </aside>
+                    <button id="leaveReviewBtn" class="text-sm text-indigo-600 hover:underline">
+                        💬 Sharh qoldirish
+                    </button>
 
-  </main>
+                    <button id="startQuiz"
+                        class="text-sm px-4 py-2 rounded bg-yellow-500 text-white hover:bg-yellow-600 hidden">
+                        📝 Testni boshlash
+                    </button>
+                </div>
+            </div>
 
-  <script>
-    const lessons = [
-      {
-        id: 1,
-        title: "Kirish darsi",
-        video: "https://www.w3schools.com/html/mov_bbb.mp4",
-        description: "Bu kursning kirish darsi.",
-        completed: false
-      },
-      {
-        id: 2,
-        title: "Asosiy tushunchalar",
-        video: "https://www.w3schools.com/html/movie.mp4",
-        description: "Muhim terminlar bilan tanishamiz.",
-        completed: false
-      },
-    ];
+            <!-- 🔹 Sharh formasi -->
+            <div class="bg-white rounded-xl shadow p-4 hidden" id="reviewForm">
+                <label class="block mb-2 font-medium">Baholash (1–5):</label>
+                <select id="rating" class="border px-3 py-1 rounded">
+                    <option value="5">5 - Zo‘r</option>
+                    <option value="4">4 - Yaxshi</option>
+                    <option value="3">3 - O‘rtacha</option>
+                    <option value="2">2 - Yomon</option>
+                    <option value="1">1 - Juda yomon</option>
+                </select>
+                <textarea id="reviewText" class="w-full mt-3 border rounded p-2" rows="3"
+                    placeholder="Izoh..."></textarea>
+                <button id="submitReview"
+                    class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Yuborish</button>
+            </div>
+        </section>
 
-    const lessonList = document.getElementById("lessonList");
-    const video = document.getElementById("lessonVideo");
-    const videoSrc = document.getElementById("videoSource");
-    const lessonTitle = document.getElementById("lessonTitle");
-    const lessonDescription = document.getElementById("lessonDescription");
-    const markCompleted = document.getElementById("markCompleted");
-    const completeCourse = document.getElementById("completeCourse");
-    const studentName = document.getElementById("studentName");
+        <!-- 🔹 Yon panel -->
+        <aside class="bg-white rounded-xl shadow p-4 space-y-3 h-fit">
+            <h3 class="font-bold text-lg">Darslar</h3>
+            <ul id="lessonList" class="space-y-2 text-sm"></ul>
+            <button id="completeCourse" class="w-full mt-6 bg-indigo-600 text-white px-4 py-2 rounded hidden">Kursni
+                tugatdim</button>
+        </aside>
+    </main>
 
-    let currentLessonIndex = 0;
+    <script>
+        const previousPage = localStorage.getItem("previousPage");
 
-    function renderLessons() {
-      lessonList.innerHTML = "";
-      lessons.forEach((lesson, index) => {
-        const li = document.createElement("li");
-        li.textContent = lesson.title + (lesson.completed ? " ✅" : "");
-        li.className = "cursor-pointer hover:underline";
-        li.onclick = () => loadLesson(index);
-        lessonList.appendChild(li);
-      });
-    }
+        let breadcrumbText = "Bosh sahifa";
 
-    function loadLesson(index) {
-      currentLessonIndex = index;
-      const lesson = lessons[index];
-      videoSrc.src = lesson.video;
-      video.load();
-      lessonTitle.textContent = lesson.title;
-      lessonDescription.textContent = lesson.description;
-    }
+        if (previousPage === "dashboard") {
+            breadcrumbText = "Dashboard";
+        } else if (previousPage === "courses") {
+            breadcrumbText = "Kurslar ro'yxati";
+        }
 
-    markCompleted.onclick = () => {
-      lessons[currentLessonIndex].completed = true;
-      renderLessons();
-      checkIfAllCompleted();
-    };
+        // 📍 breadcrumb ni sahifaga chiqaramiz
+        const breadcrumb = document.getElementById("breadcrumb");
+        breadcrumb.textContent = `← ${breadcrumbText} sahifaga qaytish`;
+        breadcrumb.onclick = () => {
+            if (previousPage === "dashboard") {
+                window.location.href = "dashboard.html";
+            } else {
+                window.location.href = "courses.html";
+            }
+        };
 
-    function checkIfAllCompleted() {
-      const allDone = lessons.every(l => l.completed);
-      completeCourse.classList.toggle("hidden", !allDone);
-    }
+    </script>
 
-    // Review toggle
-    document.getElementById("leaveReviewBtn").onclick = () => {
-      document.getElementById("reviewForm").classList.toggle("hidden");
-    };
-
-    function submitReview() {
-      const rating = document.getElementById("rating").value;
-      const reviewText = document.getElementById("reviewText").value.trim();
-      console.log("Review submitted:", { rating, reviewText });
-      alert("Sharhingiz yuborildi!");
-    }
-
-    // Init
-    studentName.textContent = JSON.parse(localStorage.getItem("currentUser")).name || "Talaba";
-    renderLessons();
-    loadLesson(0);
-  </script>
+    <script type="module" src="./course.js"></script>
 </body>
+
 </html>

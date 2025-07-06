@@ -12,26 +12,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen text-gray-800">
 
     <!-- 🔹 Header -->
     <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
         <h1 class="text-xl font-bold text-indigo-600">🎓 EdBase</h1>
-        <div class="text-gray-700" id="studentName">Salom, ...</div>
+        <div class="flex items-center gap-4">
+            <img src="https://miro.medium.com/v2/resize:fit:2400/2*3S3r49NGL64Ssb1cBZAl1g.jpeg" alt="Avatar" class="w-10 h-10 rounded-full object-cover border" />
+            <div class="text-sm text-gray-700">
+                <p id="studentName">Salom, ...</p>
+                <button id="logoutBtn" class="text-xs text-red-500 hover:underline">Chiqish</button>
+            </div>
+        </div>
     </header>
 
     <main class="p-6 max-w-7xl mx-auto space-y-10">
         <!-- 📊 Statistikalar -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div class="bg-white shadow rounded-xl p-6 text-center">
+                <div class="text-3xl mb-2">📘</div>
                 <p class="text-gray-500">Faol kurslar</p>
                 <p id="activeCount" class="text-3xl font-bold text-indigo-600">0</p>
             </div>
             <div class="bg-white shadow rounded-xl p-6 text-center">
+                <div class="text-3xl mb-2">✅</div>
                 <p class="text-gray-500">Tugallangan kurslar</p>
                 <p id="completedCount" class="text-3xl font-bold text-green-600">0</p>
             </div>
             <div class="bg-white shadow rounded-xl p-6 text-center">
+                <div class="text-3xl mb-2">🎓</div>
                 <p class="text-gray-500">Sertifikatlar</p>
                 <p id="certificateCount" class="text-3xl font-bold text-yellow-600">0</p>
             </div>
@@ -43,7 +52,17 @@
                 <h2 class="text-xl font-semibold">Oxirgi boshlagan kurslar</h2>
                 <a href="courses.html" class="text-indigo-600 hover:underline">Yangi kurslarni ko‘rish</a>
             </div>
-            <div id="recentCourses" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            <div id="recentCourses" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- JS orqali to‘ldiriladi -->
+            </div>
+        </section>
+
+        <!-- 💡 Tavsiya etilgan kurslar -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Tavsiya etilgan kurslar</h2>
+            <div id="recommendedCourses" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- JS orqali to‘ldiriladi -->
+            </div>
         </section>
     </main>
 
