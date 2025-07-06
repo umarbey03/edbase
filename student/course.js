@@ -1,3 +1,10 @@
+const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+// Agar foydalanuvchi login qilmagan bo‘lsa → qaytaramiz
+if (!currentUser || currentUser.role !== "student") {
+  window.location.href = "/auth.html";
+}
+
 import { lessons } from './lessons.js';
 
 const video = document.getElementById("lessonVideo");
