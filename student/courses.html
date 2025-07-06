@@ -1,0 +1,131 @@
+<!-- /student/courses.html -->
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../photos/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png">
+    <title>Mening Kurslarim | EdBase Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-indigo-600">EdBase</h1>
+        <div id="studentName" class="text-gray-700"></div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-4">Kurslaringiz</h2>
+
+        <!-- Filter Tabs -->
+        <div class="flex gap-4 mb-6">
+            <button onclick="filterCourses('all')" class="filter-tab active-tab">Barchasi</button>
+            <button onclick="filterCourses('active')" class="filter-tab">Faol</button>
+            <button onclick="filterCourses('completed')" class="filter-tab">Tugallangan</button>
+        </div>
+
+        <!-- Kurslar ro'yxati -->
+        <div id="coursesList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    </main>
+
+    <script>
+        // Student ma'lumotlarini olish
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+        if (!user || user.role !== "student") window.location.href = "/auth.html";
+        document.getElementById("studentName").textContent = `👋 ${user.name}`;
+
+        const mockCourses = [
+            {
+                id: "1",
+                title: "Frontend Dasturlash Asoslari",
+                instructor: "Jasur Programmist",
+                banner: "https://picsum.photos/400/200?random=1",
+                progress: 65,
+                completed: false
+            },
+            {
+                id: "2",
+                title: "Digital Marketing 101",
+                instructor: "Dilnoza Marketolog",
+                banner: "https://picsum.photos/400/200?random=2",
+                progress: 100,
+                completed: true
+            },
+            {
+                id: "3",
+                title: "Python orqali Data Analysis",
+                instructor: "Sherzod Analitik",
+                banner: "https://picsum.photos/400/200?random=3",
+                progress: 30,
+                completed: false
+            }
+        ];
+
+        let currentFilter = 'all';
+
+        function filterCourses(type) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-tab').forEach(btn => btn.classList.remove('active-tab'));
+            event.target.classList.add('active-tab');
+            renderCourses();
+        }
+
+        function renderCourses() {
+            const list = document.getElementById("coursesList");
+            list.innerHTML = "";
+            let filtered = mockCourses;
+
+            if (currentFilter === "active") filtered = mockCourses.filter(c => !c.completed);
+            else if (currentFilter === "completed") filtered = mockCourses.filter(c => c.completed);
+
+            filtered.forEach(course => {
+                const el = document.createElement("div");
+                el.className = "bg-white rounded-lg shadow overflow-hidden";
+                el.innerHTML = `
+          <img src="${course.banner}" alt="${course.title}" class="w-full h-40 object-cover">
+          <div class="p-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-1">${course.title}</h3>
+            <p class="text-sm text-gray-500 mb-2">Instruktor: ${course.instructor}</p>
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+              <div class="bg-indigo-600 h-2 rounded-full" style="width: ${course.progress}%"></div>
+            </div>
+            <div class="flex justify-between items-center">
+              <a href="course.html?id=${course.id}" class="text-sm text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded">
+                ${course.completed ? "Qayta ko‘rish" : "Davom ettirish"}
+              </a>
+              ${course.completed ? `<a href="/student/certificates.html#course-${course.id}" class="text-xs text-indigo-500">Sertifikat</a>` : ""}
+            </div>
+          </div>
+        `;
+                list.appendChild(el);
+            });
+        }
+
+        renderCourses();
+    </script>
+
+    <style>
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border: 1px solid #6366f1;
+            color: #6366f1;
+            border-radius: 9999px;
+            font-weight: 500;
+            background-color: white;
+        }
+
+        .active-tab {
+            background-color: #6366f1;
+            color: white;
+        }
+    </style>
+</body>
+
+</html>
