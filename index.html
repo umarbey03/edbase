@@ -45,25 +45,35 @@
 <body class="bg-gray-50 text-gray-800">
 
     <!-- 🔹 Navbar -->
-    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50 transition sticky top-0 z-50">
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50 transition">
         <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
             <!-- Logo -->
-            <a href="#" class="text-2xl font-bold text-indigo-600">EdBase</a>
+            <a href="/" class="text-2xl font-bold text-indigo-600">EdBase</a>
 
             <!-- Desktop nav links -->
             <div class="hidden md:flex items-center gap-8 text-sm font-medium">
-                <a href="/" class="nav-link" id="mainPage">Bosh sahifa</a>
+                <a href="/" class="nav-link">Bosh sahifa</a>
                 <a href="/courses.html" class="nav-link">Kurslar</a>
-                <a href="/blog.html" class="nav-link" id="navBlogLink">Blog</a>
+                <a href="/blog.html" class="nav-link">Blog</a>
                 <a href="/about.html" class="nav-link">Biz haqimizda</a>
                 <a href="/help.html" class="nav-link">Yordam</a>
             </div>
 
+            <!-- Auth kontrollerlar -->
             <div class="hidden md:flex items-center gap-4">
-                <a href="auth.html" class="text-sm text-gray-700 hover:text-indigo-600 transition px-4 py-2">Kirish</a>
-                <a href="auth.html?mode=register"
-                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">Ro‘yxatdan
-                    o‘tish</a>
+                <!-- 👤 Guest (Not logged in) -->
+                <div id="authButtons" class="flex gap-4">
+                    <a href="/auth.html?mode=login" class="text-indigo-600 hover:underline">🔐 Kirish</a>
+                    <a href="/auth.html?mode=register" class="text-indigo-600 hover:underline">📝 Ro‘yxatdan o‘tish</a>
+                </div>
+
+                <!-- ✅ Logged in -->
+                <div id="userButtons" class="hidden gap-4 items-center">
+                    <span id="navUserName" class="text-gray-700 font-semibold"></span>
+                    <a id="goDashboard" href="/student/dashboard.html" class="text-green-600 hover:underline">📋
+                        Dashboard</a>
+                    <button id="logoutBtn" class="text-red-600 hover:underline">🚪 Chiqish</button>
+                </div>
             </div>
 
             <!-- Mobile toggle icon -->
@@ -75,19 +85,27 @@
             </button>
         </nav>
 
-        <!-- Mobile menu -->
+        <!-- 📱 Mobile menu -->
         <div id="mobileMenu" class="md:hidden hidden px-6 pb-4">
             <div class="flex flex-col gap-3 text-sm font-medium">
-                <a href="/" class="nav-link" id="mainMobile">Bosh sahifa</a>
+                <a href="/" class="nav-link">Bosh sahifa</a>
                 <a href="/courses.html" class="nav-link">Kurslar</a>
-                <a href="/blog.html" class="nav-link" id="navBlogLink">Blog</a>
+                <a href="/blog.html" class="nav-link">Blog</a>
                 <a href="/about.html" class="nav-link">Biz haqimizda</a>
                 <a href="/help.html" class="nav-link">Yordam</a>
                 <div class="pt-2 border-t mt-2 flex flex-col gap-2">
-                    <a href="auth.html" class="text-gray-700 hover:text-indigo-600">Kirish</a>
-                    <a href="auth.html?mode=register"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">Ro‘yxatdan
-                        o‘tish</a>
+                    <div id="mobileAuth" class="flex flex-col gap-2">
+                        <a href="/auth.html" class="text-gray-700 hover:text-indigo-600">🔐 Kirish</a>
+                        <a href="/auth.html?mode=register"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">📝
+                            Ro‘yxatdan o‘tish</a>
+                    </div>
+                    <div id="mobileUser" class="hidden flex-col gap-2">
+                        <a href="/student/dashboard.html"
+                            class="bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">📋
+                            Dashboard</a>
+                        <button id="mobileLogout" class="text-center text-red-600 hover:underline">🚪 Chiqish</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -566,34 +584,6 @@
     </script>
 
     <script>
-        // Navbar linklarni avtomatik highlight qilish
-        const currentPath = window.location.pathname;
-        const blogLink = document.getElementById('mainPage');
-
-        if (currentPath.includes("/")) {
-            blogLink.classList.add("text-indigo-600", "font-semibold");
-        }
-        const blogLinkMobile = document.getElementById("mainMobile");
-        if (currentPath.includes("/") && blogLinkMobile) {
-            blogLinkMobile.classList.add("text-indigo-600", "font-semibold");
-        }
-
-        // Toggle mobile menu
-        const toggleBtn = document.getElementById("mobileMenuToggle");
-        const mobileMenu = document.getElementById("mobileMenu");
-        toggleBtn.addEventListener("click", () => {
-            mobileMenu.classList.toggle("hidden");
-        });
-
-        // Active link highlight
-        document.querySelectorAll(".nav-link").forEach(link => {
-            if (link.getAttribute("href") === currentPath) {
-                link.classList.add("active");
-            }
-        });
-    </script>
-
-    <script>
         const roleTexts = ["O‘quvchilar", "Instruktorlar", "O‘quv markazlar", "Mentorlar"];
         let current = 0;
         setInterval(() => {
@@ -605,6 +595,73 @@
                 el.style.opacity = 1;
             }, 300);
         }, 3000);
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname;
+
+            // 🟢 Navbar linklaridan aktivini ajratish
+            document.querySelectorAll(".nav-link").forEach(link => {
+                const href = link.getAttribute("href");
+
+                if (href === currentPath || (href === "/" && currentPath === "/")) {
+                    link.classList.add("text-indigo-600", "font-semibold");
+                } else {
+                    link.classList.remove("text-indigo-600", "font-semibold");
+                }
+            });
+
+            // 📱 Mobil menyuni ochish/yopish
+            const toggleBtn = document.getElementById("mobileMenuToggle");
+            const mobileMenu = document.getElementById("mobileMenu");
+
+            if (toggleBtn && mobileMenu) {
+                toggleBtn.addEventListener("click", () => {
+                    mobileMenu.classList.toggle("hidden");
+                });
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            const authButtons = document.getElementById("authButtons");
+            const userButtons = document.getElementById("userButtons");
+            const navUserName = document.getElementById("navUserName");
+
+            const mobileAuth = document.getElementById("mobileAuth");
+            const mobileUser = document.getElementById("mobileUser");
+
+            if (currentUser) {
+                // 👤 Auth bo‘lsa
+                authButtons.classList.add("hidden");
+                userButtons.classList.remove("hidden");
+                navUserName.textContent = currentUser.name || "Foydalanuvchi";
+
+                mobileAuth.classList.add("hidden");
+                mobileUser.classList.remove("hidden");
+            } else {
+                // 👥 Guest
+                authButtons.classList.remove("hidden");
+                userButtons.classList.add("hidden");
+
+                mobileAuth.classList.remove("hidden");
+                mobileUser.classList.add("hidden");
+            }
+
+            // 🔓 Logout
+            document.getElementById("logoutBtn")?.addEventListener("click", () => {
+                localStorage.removeItem("currentUser");
+                window.location.href = "/";
+            });
+
+            document.getElementById("mobileLogout")?.addEventListener("click", () => {
+                localStorage.removeItem("currentUser");
+                window.location.href = "/";
+            });
+        });
     </script>
 </body>
 

@@ -83,11 +83,8 @@ function selectLesson(lessonName) {
     lessonTitle.textContent = lessonName;
     videoPlayer.src = "https://www.w3schools.com/html/mov_bbb.mp4"; // Demo video, realda o‘zgartiriladi
     loadAssignment(courseId, lessonName);
+    listenToAssistChats(); // 👈 Assist chatlarni yuklash
 }
-
-document.getElementById("askAssistBtn").addEventListener("click", () => {
-    alert("🆘 Yordamchi tizim ishlanmoqda. Tez orada aktiv bo‘ladi!");
-});
 
 // 🔘 Muhokama ochish tugmasi
 document.getElementById("openChatBtn").addEventListener("click", () => {
@@ -303,6 +300,56 @@ document.getElementById("submitAssignmentBtn").addEventListener("click", async (
         console.error("❌ Vazifa topshirishda xatolik:", err);
     }
 });
+
+document.getElementById("askAssistBtn").addEventListener("click", () => {
+    document.getElementById("assistBox").classList.toggle("hidden");
+});
+
+document.getElementById("sendAssistBtn").addEventListener("click", async () => {
+    const text = document.getElementById("assistInput").value.trim();
+    if (!text) return;
+
+    try {
+        await addDoc(collection(db, "assistChats"), {
+            courseId,
+            lessonName: selectedLesson,
+            userId: currentUser.uid,
+            userName: currentUser.name,
+            text,
+            sender: "student",
+            createdAt: serverTimestamp()
+        });
+
+        document.getElementById("assistInput").value = "";
+    } catch (err) {
+        console.error("❌ Assistga yuborishda xatolik:", err);
+    }
+});
+
+function listenToAssistChats() {
+    const q = query(
+        collection(db, "assistChats"),
+        where("courseId", "==", courseId),
+        where("lessonName", "==", selectedLesson),
+        where("userId", "==", currentUser.uid),
+        orderBy("createdAt", "asc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+        const box = document.getElementById("assistMessages");
+        box.innerHTML = "";
+
+        snapshot.forEach(doc => {
+            const msg = doc.data();
+            const div = document.createElement("div");
+            div.className = `p-2 rounded ${msg.sender === 'student' ? 'bg-indigo-100 text-right' : 'bg-green-100 text-left'}`;
+            div.innerHTML = `<p>${msg.text}</p><span class="text-xs text-gray-500">${msg.sender}</span>`;
+            box.appendChild(div);
+        });
+
+        box.scrollTop = box.scrollHeight;
+    });
+}
 
 
 
