@@ -351,7 +351,28 @@ function listenToAssistChats() {
     });
 }
 
+const toggleSections = {
+    submitTaskBtn: "assignmentBox",
+    rateLessonBtn: "ratingBox",
+    askAssistBtn: "assistBox",
+    openChatBtn: "discussionBox"
+};
 
+Object.entries(toggleSections).forEach(([btnId, boxId]) => {
+    const btn = document.getElementById(btnId);
+    const box = document.getElementById(boxId);
+
+    btn.addEventListener("click", () => {
+        // Barcha boxlarni yop
+        Object.values(toggleSections).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add("hidden");
+        });
+
+        // Faqat tanlangan boxni och
+        if (box) box.classList.remove("hidden");
+    });
+});
 
 // 🎯 Kurs yuklangach chaqiriladi
 listenForComments(courseId);
