@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="../photos/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png">
+    <link rel="manifest" href="../photos/site.webmanifest">
+    <title>Kursni o‘rganish</title>
+    <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- 🔝 Header -->
+    <header class="bg-white px-6 py-4 shadow flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-lg font-bold text-indigo-600">🎓 Kursni o‘rganish</h1>
+        <a href="./dashboard.html" id="backBtn" class="text-sm text-indigo-600 hover:underline">← Ortga</a>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 min-h-screen">
+        <!-- 📚 Sidebar: Modullar va darslar -->
+        <aside class="bg-white border-r p-4 overflow-y-auto md:col-span-1">
+            <h2 class="text-lg font-bold mb-4">📚 Darslar</h2>
+            <div id="moduleList" class="space-y-2"></div>
+        </aside>
+
+        <!-- 🎥 Asosiy kontent -->
+        <main class="p-6 md:col-span-3 space-y-6">
+            <!-- 🧠 Kurs sarlavhasi va ma’lumot -->
+            <div id="courseHeader" class="space-y-1">
+                <h1 id="courseTitle" class="text-2xl font-bold">Kurs nomi</h1>
+                <p id="instructorInfo" class="text-sm text-gray-600">Instruktor va markaz</p>
+                <p id="rating" class="text-yellow-500 text-sm">⭐ Reyting</p>
+            </div>
+
+            <!-- 🎬 Video -->
+            <div id="videoBox">
+                <video id="videoPlayer" controls class="w-full rounded-lg max-h-[450px] bg-black">
+                    <source src="" type="video/mp4" />
+                    Brauzeringiz video qo‘llab-quvvatlamaydi.
+                </video>
+            </div>
+
+            <!-- 🧾 Dars nomi va tavsifi -->
+            <div>
+                <h2 id="lessonTitle" class="text-xl font-semibold mb-2">Dars nomi</h2>
+                <div id="lessonContent" class="text-gray-700 leading-relaxed">
+                    <p>Dars tavsifi...</p>
+                </div>
+            </div>
+
+            <!-- 🔘 Dars tugmalari -->
+            <div class="flex flex-wrap gap-3">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" id="submitTaskBtn">📌
+                    Vazifa</button>
+                <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" id="rateLessonBtn">⭐
+                    Baholash</button>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" id="askAssistBtn">🆘
+                    Assist</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" id="openChatBtn">🗨️
+                    Muhokama</button>
+            </div>
+
+            <!-- 💬 Muhokama -->
+            <div id="discussionBox" class="mt-6 hidden">
+                <h3 class="text-lg font-semibold mb-2">💬 Fikrlar</h3>
+                <div id="commentsList"
+                    class="space-y-2 text-sm text-gray-800 max-h-60 overflow-y-auto border rounded p-2"></div>
+
+                <textarea id="commentInput" class="w-full border p-2 rounded mt-2" rows="3"
+                    placeholder="Izoh qoldiring..."></textarea>
+                <button id="sendCommentBtn"
+                    class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Yuborish</button>
+            </div>
+
+            <!-- ⭐ Baholash bo‘limi -->
+            <div id="ratingBox" class="hidden border rounded p-4 bg-white mt-6 space-y-3">
+                <p class="text-base font-medium text-gray-800">Darsni baholang:</p>
+
+                <div id="starRating" class="flex gap-2 text-2xl cursor-pointer text-gray-400"></div>
+
+                <label for="ratingReason" class="block text-sm text-gray-700">Nima sababdan shunday baho
+                    berdingiz?</label>
+                <select id="ratingReason" class="w-full border rounded px-3 py-2 text-sm text-gray-700">
+                    <option value="">— Tanlang —</option>
+                    <option value="Tushunarli dars">Tushunarli dars</option>
+                    <option value="Video sifati yaxshi">Video sifati yaxshi</option>
+                    <option value="Qiyin tushunildi">Qiyin tushunildi</option>
+                    <option value="Yordamchi materiallar yo'q">Yordamchi materiallar yo'q</option>
+                    <option value="Qiziqarli">Qiziqarli</option>
+                    <option value="Boshqa">Boshqa</option>
+                </select>
+
+                <button id="submitRatingBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    ✅ Yuborish
+                </button>
+
+                <p id="avgRating" class="text-sm text-gray-600 italic"></p>
+            </div>
+
+            <!-- ✍️ Vazifa ko‘rinishi va topshirish formasi -->
+            <div id="assignmentBox" class="p-4 bg-white border rounded hidden space-y-4">
+                <h3 class="font-bold text-lg">📌 Vazifa</h3>
+                <p id="assignmentQuestion" class="text-gray-700">Savol yuklanmoqda...</p>
+
+                <textarea id="assignmentAnswer" class="w-full border rounded p-2" rows="4"
+                    placeholder="Javobingizni yozing..."></textarea>
+                <button id="submitAssignmentBtn"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Topshirish</button>
+
+                <p id="assignmentStatus" class="text-sm text-green-600 mt-2 hidden">✅ Topshirildi</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="./learn.js" defer></script>
+</body>
+
+</html>

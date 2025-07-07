@@ -8,65 +8,41 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png">
     <link rel="manifest" href="../photos/site.webmanifest">
-    <title>Dashboard | Student</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Dashboard | Student | EdBase</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <script type="module" src="student-dashboard.js" defer></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen text-gray-800">
-
-    <!-- 🔹 Header -->
-    <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-indigo-600">🎓 EdBase</h1>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 🔝 Navbar -->
+    <header class="bg-white shadow sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-indigo-600">🎓 Student Dashboard</h1>
         <div class="flex items-center gap-4">
-            <img src="https://miro.medium.com/v2/resize:fit:2400/2*3S3r49NGL64Ssb1cBZAl1g.jpeg" alt="Avatar" class="w-10 h-10 rounded-full object-cover border" />
-            <div class="text-sm text-gray-700">
-                <p id="studentName">Salom, ...</p>
-                <button id="logoutBtn" class="text-xs text-red-500 hover:underline">Chiqish</button>
-            </div>
+            <span id="userName" class="text-sm font-medium text-gray-700"></span>
+            <button id="logoutBtn"
+                class="text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200">Chiqish</button>
         </div>
     </header>
 
-    <main class="p-6 max-w-7xl mx-auto space-y-10">
-        <!-- 📊 Statistikalar -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="bg-white shadow rounded-xl p-6 text-center">
-                <div class="text-3xl mb-2">📘</div>
-                <p class="text-gray-500">Faol kurslar</p>
-                <p id="activeCount" class="text-3xl font-bold text-indigo-600">0</p>
-            </div>
-            <div class="bg-white shadow rounded-xl p-6 text-center">
-                <div class="text-3xl mb-2">✅</div>
-                <p class="text-gray-500">Tugallangan kurslar</p>
-                <p id="completedCount" class="text-3xl font-bold text-green-600">0</p>
-            </div>
-            <div class="bg-white shadow rounded-xl p-6 text-center">
-                <div class="text-3xl mb-2">🎓</div>
-                <p class="text-gray-500">Sertifikatlar</p>
-                <p id="certificateCount" class="text-3xl font-bold text-yellow-600">0</p>
+    <!-- 📦 Main content -->
+    <main class="max-w-6xl mx-auto px-6 py-8 space-y-10">
+        <!-- 👨‍🎓 Mening kurslarim -->
+        <section>
+            <h2 class="text-2xl font-semibold mb-4">📚 Mening kurslarim</h2>
+            <div id="myCourses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <p class="col-span-full text-gray-500">Yuklanmoqda...</p>
             </div>
         </section>
 
-        <!-- 🎥 Oxirgi Kurslar -->
+        <!-- 🚀 Tavsiya etilgan -->
         <section>
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Oxirgi boshlagan kurslar</h2>
-                <a href="courses.html" class="text-indigo-600 hover:underline">Yangi kurslarni ko‘rish</a>
-            </div>
-            <div id="recentCourses" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <!-- JS orqali to‘ldiriladi -->
-            </div>
-        </section>
-
-        <!-- 💡 Tavsiya etilgan kurslar -->
-        <section>
-            <h2 class="text-xl font-semibold mb-4">Tavsiya etilgan kurslar</h2>
-            <div id="recommendedCourses" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <!-- JS orqali to‘ldiriladi -->
+            <h2 class="text-2xl font-semibold mb-4">🚀 Siz uchun tavsiya</h2>
+            <div id="recommendedCourses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Kurs kartalari -->
             </div>
         </section>
     </main>
 
-    <script type="module" src="./dashboard.js"></script>
 </body>
 
 </html>

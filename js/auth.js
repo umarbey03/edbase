@@ -1,36 +1,17 @@
-// 🔐 Statik foydalanuvchilar
-const users = [
-  {
-    email: "student@mail.com",
-    password: "123456",
-    role: "student",
-    name: "Ali Talaba",
-    dashboard: "/student/dashboard.html"
-  },
-  {
-    email: "instructor@mail.com",
-    password: "123456",
-    role: "instructor",
-    name: "Ustoz Diyor",
-    dashboard: "/instructor/dashboard.html"
-  },
-  {
-    email: "lc@mail.com",
-    password: "123456",
-    role: "lc",
-    name: "EduCenter",
-    dashboard: "/lc/dashboard.html"
-  },
-  {
-    email: "employer@mail.com",
-    password: "123456",
-    role: "employer",
-    name: "IT Park HR",
-    dashboard: "/employer/dashboard.html"
-  }
-];
+// ✅ auth.js (Firebase bilan to‘liq dinamik, pro versiyasi)
 
-// 🔁 URL parametrlar
+import { auth, db } from './firebase-config.js';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🔄 URL parametrlar
 const urlParams = new URLSearchParams(window.location.search);
 const modeParam = urlParams.get("mode");
 const forcedRole = urlParams.get("role");
@@ -43,19 +24,14 @@ const authForm = document.getElementById("authForm");
 const formTitle = document.getElementById("formTitle");
 const switchText = document.getElementById("switchText");
 const switchBtn = document.getElementById("switchBtn");
-const roleSelect = document.getElementById("roleSelect");
+const errorBox = document.getElementById("errorBox");
 
 const fullNameGroup = document.getElementById("fullNameGroup");
 const confirmPasswordGroup = document.getElementById("confirmPasswordGroup");
 const roleGroup = document.getElementById("roleGroup");
+const roleSelect = document.getElementById("roleSelect");
 
-// ❗️ Xato xabar uchun element
-const errorBox = document.createElement("p");
-errorBox.className = "text-sm text-red-600 mt-2";
-errorBox.style.display = "none";
-authForm.appendChild(errorBox);
-
-// 🔁 Formani holatga moslab yangilash
+// 🧠 Ko‘rinishni yangilash
 function updateFormView() {
   if (isRegister) {
     formTitle.textContent = "Ro‘yxatdan o‘tish";
@@ -67,8 +43,8 @@ function updateFormView() {
     if (!forcedRole) {
       roleGroup.classList.remove("hidden");
     } else {
-      roleGroup.classList.add("hidden");
       roleSelect.value = forcedRole;
+      roleGroup.classList.add("hidden");
     }
   } else {
     formTitle.textContent = "Kirish";
@@ -79,23 +55,23 @@ function updateFormView() {
     roleGroup.classList.add("hidden");
   }
 
-  errorBox.style.display = "none"; // har safar form o‘zgarsa xatolik yo‘qoladi
+  errorBox.classList.add("hidden");
 }
 
-// 🔄 Rejim almashtirish tugmasi
-function toggleMode() {
+// 🔁 Toggle holat
+switchBtn.addEventListener("click", () => {
   isRegister = !isRegister;
   updateFormView();
-}
+});
 
-// ❗️ Xatolik chiqaruvchi funksiya
-function showError(message) {
-  errorBox.textContent = message;
-  errorBox.style.display = "block";
+// ❗️ Xatolik ko‘rsatish
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.remove("hidden");
 }
 
 // ✅ Formani yuborish
-function handleSubmit(e) {
+authForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const email = document.getElementById("email").value.trim().toLowerCase();
@@ -106,40 +82,54 @@ function handleSubmit(e) {
     const confirmPassword = document.getElementById("confirmPassword").value;
     const role = forcedRole || roleSelect.value;
 
-    if (!fullName || !email || !password || password !== confirmPassword) {
-      showError("Ma’lumotlar to‘liq emas yoki parollar mos emas!");
-      return;
+    if (!fullName || !email || !password || !confirmPassword)
+      return showError("Barcha maydonlarni to‘ldiring.");
+    if (password !== confirmPassword)
+      return showError("Parollar mos emas.");
+
+    try {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+
+      // Firestorega saqlash
+      await setDoc(doc(db, "users", uid), {
+        uid,
+        name: fullName,
+        email,
+        role,
+        createdAt: new Date().toISOString()
+      });
+
+      localStorage.setItem("currentUser", JSON.stringify({
+        uid: userCred.user.uid,       // 🔥 SHU QATOR MUHIM!
+        email,
+        name: fullName,
+        role
+      }));
+      window.location.href = redirectUrl || `/${role}/dashboard.html`;
+    } catch (err) {
+      console.error("[REGISTER ERROR]", err);
+      showError("Ro‘yxatdan o‘tishda xatolik: " + err.message);
     }
-
-    const newUser = {
-      email,
-      password,
-      name: fullName,
-      role,
-      dashboard: `/${role}/dashboard.html`
-    };
-
-    console.log("[REGISTER]", newUser);
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
-    window.location.href = redirectUrl || newUser.dashboard;
 
   } else {
-    const foundUser = users.find(
-      (user) => user.email === email && user.password === password
-    );
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
 
-    if (!foundUser) {
-      showError("Email yoki parol noto‘g‘ri!");
-      return;
+      // 🔄 Foydalanuvchi ma’lumotlarini olish
+      const userSnap = await getDoc(doc(db, "users", uid));
+      if (!userSnap.exists()) return showError("Foydalanuvchi topilmadi!");
+
+      const userData = userSnap.data();
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+      window.location.href = redirectUrl || `/${userData.role}/dashboard.html`;
+    } catch (err) {
+      console.error("[LOGIN ERROR]", err);
+      showError("Kirishda xatolik: Email yoki parol noto‘g‘ri.");
     }
-
-    localStorage.setItem("currentUser", JSON.stringify(foundUser));
-    window.location.href = redirectUrl || foundUser.dashboard;
   }
-}
+});
 
-// 🎯 Formani submitga bog‘lash
-authForm.addEventListener("submit", handleSubmit);
-
-// 🔄 Dastlabki ko‘rinishni belgilash
+// ▶️ Boshlanishda formani yangilash
 updateFormView();
