@@ -10,7 +10,8 @@ import {
     where,
     orderBy,
     onSnapshot,
-    setDoc
+    setDoc,
+    getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🔒 Check user
@@ -43,16 +44,12 @@ async function loadCourse() {
         courseTitle.textContent = course.title;
         instructorInfo.textContent = `${course.instructorName} | ${course.centerName}`;
 
-        renderModules(course.modules);
-        if (course.modules?.length) selectLesson(course.modules[0].lessons?.[0] || "");
+        await renderModules(courseId); // 🔁 Firestore’dan modullarni yuklaydi
     } catch (err) {
         console.error("❌ Kurs yuklashda xatolik:", err);
     }
 }
 
-// 🧩 Render module list
-
-// 📦 Kursdagi modullar va darslarni yuklash va chizish
 async function renderModules(courseId) {
     const modulesRef = collection(db, "courses", courseId, "modules");
     const modulesSnap = await getDocs(modulesRef);
@@ -64,41 +61,106 @@ async function renderModules(courseId) {
         const moduleId = moduleDoc.id;
 
         const wrapper = document.createElement("div");
-        wrapper.className = "mb-4";
+        wrapper.className = "border rounded overflow-hidden";
 
-        const modTitle = document.createElement("h3");
-        modTitle.className = "font-bold text-gray-800";
-        modTitle.textContent = moduleData.title;
+        const header = document.createElement("div");
+        header.className = "bg-gray-100 px-3 py-2 font-semibold cursor-pointer hover:bg-gray-200";
+        header.textContent = moduleData.title;
 
-        const ul = document.createElement("ul");
+        const content = document.createElement("ul");
+        content.className = "hidden px-4 py-2 bg-white space-y-1";
+
+        header.addEventListener("click", () => {
+            content.classList.toggle("hidden");
+        });
 
         const lessonsRef = collection(db, "courses", courseId, "modules", moduleId, "lessons");
         const lessonsSnap = await getDocs(lessonsRef);
 
-        lessonsSnap.forEach(lessonDoc => {
-            const lessonData = lessonDoc.data();
-            const lessonId = lessonDoc.id;
+        const sortedLessons = lessonsSnap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
 
+        let canAccessNext = true;
+
+        for (const lesson of sortedLessons) {
+            const lessonId = lesson.id;
+            const assignmentId = `${courseId}_${lessonId}_${currentUser.uid}`;
+            const assignmentRef = doc(db, "assignments", assignmentId);
+            const assignmentSnap = await getDoc(assignmentRef);
+
+            const isSubmitted = assignmentSnap.exists();
             const li = document.createElement("li");
-            li.className = "text-indigo-600 cursor-pointer hover:underline text-sm my-1";
-            li.textContent = lessonData.title;
-            li.addEventListener("click", () => selectLesson(courseId, moduleId, lessonId, lessonData.title));
-            ul.appendChild(li);
-        });
 
-        wrapper.appendChild(modTitle);
-        wrapper.appendChild(ul);
+            if (canAccessNext) {
+                li.className = "text-blue-600 cursor-pointer hover:underline text-sm";
+                li.innerHTML = `${lesson.title} ${isSubmitted ? '✅' : ''}`;
+                li.addEventListener("click", () => {
+                    selectLesson(courseId, moduleId, lessonId, lesson.title, lesson.description);
+                });
+            } else {
+                li.className = "text-gray-400 cursor-not-allowed text-sm";
+                li.innerHTML = `${lesson.title} 🔒`;
+            }
+
+            if (!isSubmitted) canAccessNext = false;
+
+            content.appendChild(li);
+        }
+
+        wrapper.appendChild(header);
+        wrapper.appendChild(content);
         moduleList.appendChild(wrapper);
     }
 }
 
 // 🎯 Select lesson
-function selectLesson(lessonName) {
-    selectedLesson = lessonName;
-    lessonTitle.textContent = lessonName;
-    videoPlayer.src = "https://www.w3schools.com/html/mov_bbb.mp4"; // Demo video, realda o‘zgartiriladi
-    loadAssignment(courseId, lessonName);
-    listenToAssistChats(); // 👈 Assist chatlarni yuklash
+function selectLesson(courseId, moduleId, lessonId, lessonTitleText, lessonDescription = "") {
+    selectedLesson = lessonId;
+    lessonTitle.textContent = lessonTitleText;
+    lessonContent.innerHTML = `<p>${lessonDescription || "Dars tavsifi mavjud emas."}</p>`;
+
+    // 🎥 Video va placeholder
+    const video = document.getElementById("videoPlayer");
+    const placeholder = document.getElementById("videoPlaceholder");
+    video.classList.remove("hidden");
+    placeholder.classList.add("hidden");
+
+    // ✅ Tugmalar va tavsifni ko‘rsatish
+    document.getElementById("lessonActions").classList.remove("hidden");
+    document.getElementById("lessonDescriptionSection").classList.remove("hidden");
+
+    video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+
+    // ✅ Darsni tugallangan deb belgilash
+    if (currentUser?.uid) {
+        markLessonAsCompleted(currentUser.uid, courseId, moduleId, lessonId);
+    }
+
+    loadAssignment(courseId, lessonId);
+    listenToAssistChats();
+}
+
+// Ranglar palitrasi (xohlaganingizcha kengaytiring)
+const userColors = [
+    "#f87171", // red-400
+    "#60a5fa", // blue-400
+    "#34d399", // green-400
+    "#fbbf24", // yellow-400
+    "#a78bfa", // purple-400
+    "#f472b6", // pink-400
+    "#38bdf8", // sky-400
+    "#facc15", // amber-400
+];
+
+// Simple hash funksiyasi stringdan index olish uchun
+function hashStringToIndex(str, max) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0; // 32-bit integer
+    }
+    return Math.abs(hash) % max;
 }
 
 // 🔘 Muhokama ochish tugmasi
@@ -127,7 +189,7 @@ document.getElementById("sendCommentBtn").addEventListener("click", async () => 
     }
 });
 
-// 📥 Izohlarni yuklash (real time)
+// 🆕 Izohlarni yuklash (real time) — rangli cardlar bilan
 function listenForComments(courseId) {
     const commentRef = query(
         collection(db, "comments"),
@@ -137,17 +199,30 @@ function listenForComments(courseId) {
     onSnapshot(commentRef, (snapshot) => {
         const commentsBox = document.getElementById("commentsList");
         commentsBox.innerHTML = "";
+        commentsBox.className = "space-y-3 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-400 border rounded p-3 bg-gray-50";
 
         snapshot.docs
             .filter(doc => doc.data().courseId === courseId)
             .forEach(doc => {
                 const c = doc.data();
+                const colorIndex = hashStringToIndex(c.userId || c.userName || "anon", userColors.length);
+                const userColor = userColors[colorIndex];
+
                 const div = document.createElement("div");
-                div.className = "border p-2 rounded bg-white";
+                div.className = "border p-3 rounded shadow-sm bg-white hover:shadow-md transition-shadow duration-200";
+                // div.style.borderColor = userColor;
+
+                const createdAt = c.createdAt?.toDate ? c.createdAt.toDate() : null;
+                const timeStr = createdAt ? createdAt.toLocaleString() : "";
+
                 div.innerHTML = `
-          <p class="font-semibold text-sm">${c.userName}</p>
-          <p class="text-sm text-gray-700">${c.text}</p>
+          <p class="font-semibold text-sm mb-1" style="color: ${userColor}">
+            ${c.userName}
+            <span class="text-xs text-gray-400 ml-2">${timeStr}</span>
+          </p>
+          <p class="text-gray-900 text-sm">${c.text}</p>
         `;
+
                 commentsBox.appendChild(div);
             });
     });
@@ -395,8 +470,18 @@ Object.entries(toggleSections).forEach(([btnId, boxId]) => {
     });
 });
 
+async function markLessonAsCompleted(userId, courseId, moduleId, lessonId) {
+    const progressRef = doc(db, "users", userId, "lessonProgress", lessonId);
+    await setDoc(progressRef, {
+        courseId,
+        moduleId,
+        lessonId,
+        completed: true,
+        watchedAt: serverTimestamp()
+    });
+}
+
 // 🎯 Kurs yuklangach chaqiriladi
 listenForComments(courseId);
-
 
 loadCourse();

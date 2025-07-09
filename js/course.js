@@ -7,7 +7,7 @@ const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 const urlParams = new URLSearchParams(window.location.search);
 const courseId = urlParams.get("id");
 const courseContainer = document.getElementById("courseContainer");
-
+let courseData = null;
 async function loadCourse() {
   try {
     const docRef = doc(db, "courses", courseId);
@@ -20,7 +20,7 @@ async function loadCourse() {
 
     const course = docSnap.data();
     // ➕ BONUS: global variable sifatida saqlaymiz:
-    let courseData = course;
+    courseData = course;
     // Modullarni accordion ko‘rinishida chizish
     const renderModules = (modules) => {
       if (!Array.isArray(modules)) return "<p>Modullar topilmadi</p>";
@@ -103,7 +103,7 @@ function renderActionButtons(course) {
   }
 
   if (hasEnrolled || hasPurchased) {
-    return `<a href="/student/learn.html?id=${courseId}" class="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700">▶️ Boshlash</a>`;
+    return `<a href="/student/learn.html?courseId=${courseId}" class="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700">▶️ Boshlash</a>`;
   }
 
   return `<button onclick="buyCourse()" class="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700">💳 Sotib olish – ${course.price}</button>`;
