@@ -83,24 +83,29 @@ async function renderModules(courseId) {
 
         let canAccessNext = true;
 
-        for (const lesson of sortedLessons) {
+        for (const [index, lesson] of sortedLessons.entries()) {
             const lessonId = lesson.id;
             const assignmentId = `${courseId}_${lessonId}_${currentUser.uid}`;
             const assignmentRef = doc(db, "assignments", assignmentId);
             const assignmentSnap = await getDoc(assignmentRef);
 
             const isSubmitted = assignmentSnap.exists();
+
             const li = document.createElement("li");
 
             if (canAccessNext) {
                 li.className = "text-blue-600 cursor-pointer hover:underline text-sm";
                 li.innerHTML = `${lesson.title} ${isSubmitted ? '✅' : ''}`;
                 li.addEventListener("click", () => {
+                    // Faqat ruxsat bo‘lsa, ochiladi
                     selectLesson(courseId, moduleId, lessonId, lesson.title, lesson.description);
                 });
             } else {
                 li.className = "text-gray-400 cursor-not-allowed text-sm";
                 li.innerHTML = `${lesson.title} 🔒`;
+                li.addEventListener("click", () => {
+                    showRestrictionModal(lesson.title);
+                });
             }
 
             if (!isSubmitted) canAccessNext = false;
@@ -480,6 +485,19 @@ async function markLessonAsCompleted(userId, courseId, moduleId, lessonId) {
         watchedAt: serverTimestamp()
     });
 }
+
+function showRestrictionModal(lessonName = "") {
+    const modal = document.getElementById("restrictionModal");
+    const message = modal.querySelector("h2");
+    if (message) {
+        message.textContent = `⛔ Siz "${lessonName}"ga o‘ta olmaysiz. Iltimos, avvalgi darsni to‘liq yakunlang.`;
+    }
+    modal.classList.remove("hidden");
+}
+
+document.getElementById("closeRestrictionModal").addEventListener("click", () => {
+    document.getElementById("restrictionModal").classList.add("hidden");
+});
 
 // 🎯 Kurs yuklangach chaqiriladi
 listenForComments(courseId);
