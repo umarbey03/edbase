@@ -51,30 +51,45 @@ async function loadCourse() {
 }
 
 // 🧩 Render module list
-function renderModules(modules = []) {
+
+// 📦 Kursdagi modullar va darslarni yuklash va chizish
+async function renderModules(courseId) {
+    const modulesRef = collection(db, "courses", courseId, "modules");
+    const modulesSnap = await getDocs(modulesRef);
+
     moduleList.innerHTML = "";
 
-    modules.forEach((mod, i) => {
+    for (const moduleDoc of modulesSnap.docs) {
+        const moduleData = moduleDoc.data();
+        const moduleId = moduleDoc.id;
+
         const wrapper = document.createElement("div");
         wrapper.className = "mb-4";
 
         const modTitle = document.createElement("h3");
         modTitle.className = "font-bold text-gray-800";
-        modTitle.textContent = mod.title;
+        modTitle.textContent = moduleData.title;
 
         const ul = document.createElement("ul");
-        mod.lessons.forEach(lesson => {
+
+        const lessonsRef = collection(db, "courses", courseId, "modules", moduleId, "lessons");
+        const lessonsSnap = await getDocs(lessonsRef);
+
+        lessonsSnap.forEach(lessonDoc => {
+            const lessonData = lessonDoc.data();
+            const lessonId = lessonDoc.id;
+
             const li = document.createElement("li");
             li.className = "text-indigo-600 cursor-pointer hover:underline text-sm my-1";
-            li.textContent = lesson;
-            li.addEventListener("click", () => selectLesson(lesson));
+            li.textContent = lessonData.title;
+            li.addEventListener("click", () => selectLesson(courseId, moduleId, lessonId, lessonData.title));
             ul.appendChild(li);
         });
 
         wrapper.appendChild(modTitle);
         wrapper.appendChild(ul);
         moduleList.appendChild(wrapper);
-    });
+    }
 }
 
 // 🎯 Select lesson
@@ -148,14 +163,20 @@ document.getElementById("rateLessonBtn").addEventListener("click", () => {
     }
 });
 
-function renderStars(selected = 0) {
+function renderStars(selected = 0, readonly = false) {
     const container = document.getElementById("starRating");
     container.innerHTML = "";
 
     for (let i = 1; i <= 5; i++) {
         const star = document.createElement("span");
         star.textContent = "★";
-        star.className = i <= selected ? "text-yellow-400" : "text-gray-300";
+        star.className = `cursor-pointer text-2xl transition ${i <= selected ? "text-yellow-400" : "text-gray-300"}`;
+
+        if (!readonly) {
+            star.addEventListener("click", () => {
+                renderStars(i); // Yangilab bo‘yash
+            });
+        }
 
         container.appendChild(star);
     }

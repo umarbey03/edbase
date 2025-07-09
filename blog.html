@@ -35,16 +35,17 @@
             <div class="hidden md:flex items-center gap-4">
                 <!-- 👤 Guest (Not logged in) -->
                 <div id="authButtons" class="flex gap-4">
-                    <a href="/auth.html?mode=login" class="text-indigo-600 hover:underline">🔐 Kirish</a>
-                    <a href="/auth.html?mode=register" class="text-indigo-600 hover:underline">📝 Ro‘yxatdan o‘tish</a>
+                    <a href="/auth.html?mode=login" class="text-gray-700 hover:text-indigo-600 p-2">Kirish</a>
+                    <a href="/auth.html?mode=register"
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">Ro‘yxatdan
+                        o‘tish</a>
                 </div>
 
                 <!-- ✅ Logged in -->
                 <div id="userButtons" class="hidden gap-4 items-center">
-                    <span id="navUserName" class="text-gray-700 font-semibold"></span>
-                    <a id="goDashboard" href="/student/dashboard.html" class="text-green-600 hover:underline">📋
+                    <a id="navUserName" href="/student/dashboard.html" class="text-green-600 hover:underline">
                         Dashboard</a>
-                    <button id="logoutBtn" class="text-red-600 hover:underline">🚪 Chiqish</button>
+                    <button id="logoutBtn" class="text-red-600 hover:underline">Chiqish</button>
                 </div>
             </div>
 
@@ -67,16 +68,16 @@
                 <a href="/help.html" class="nav-link">Yordam</a>
                 <div class="pt-2 border-t mt-2 flex flex-col gap-2">
                     <div id="mobileAuth" class="flex flex-col gap-2">
-                        <a href="/auth.html" class="text-gray-700 hover:text-indigo-600">🔐 Kirish</a>
+                        <a href="/auth.html" class="text-gray-700 hover:text-indigo-600">Kirish</a>
                         <a href="/auth.html?mode=register"
-                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">📝
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">
                             Ro‘yxatdan o‘tish</a>
                     </div>
                     <div id="mobileUser" class="hidden flex-col gap-2">
-                        <a href="/student/dashboard.html"
-                            class="bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">📋
+                        <a id="navUserName" href="/student/dashboard.html"
+                            class="bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">
                             Dashboard</a>
-                        <button id="mobileLogout" class="text-center text-red-600 hover:underline">🚪 Chiqish</button>
+                        <button id="mobileLogout" class="text-center text-red-600 hover:underline">Chiqish</button>
                     </div>
                 </div>
             </div>
