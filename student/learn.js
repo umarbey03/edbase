@@ -11,7 +11,8 @@ import {
     orderBy,
     onSnapshot,
     setDoc,
-    getDocs
+    getDocs,
+    increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🔒 Check user
@@ -477,13 +478,31 @@ Object.entries(toggleSections).forEach(([btnId, boxId]) => {
 
 async function markLessonAsCompleted(userId, courseId, moduleId, lessonId) {
     const progressRef = doc(db, "users", userId, "lessonProgress", lessonId);
-    await setDoc(progressRef, {
-        courseId,
-        moduleId,
-        lessonId,
-        completed: true,
-        watchedAt: serverTimestamp()
-    });
+    const statsRef = doc(db, "users", userId, "stats", "progress");
+
+    const progressSnap = await getDoc(progressRef);
+    const alreadyCompleted = progressSnap.exists();
+
+    if (!alreadyCompleted) {
+        // ✅ Darsni tugallangan deb belgilash
+        await setDoc(progressRef, {
+            courseId,
+            moduleId,
+            lessonId,
+            completed: true,
+            watchedAt: serverTimestamp()
+        });
+
+        // ✅ XP va completedLessons ni inkrement qilish
+        try {
+            await setDoc(statsRef, {
+                xp: increment(10),
+                completedLessons: increment(1)
+            }, { merge: true });
+        } catch (err) {
+            console.error("❌ Statistika yangilashda xatolik:", err);
+        }
+    }
 }
 
 function showRestrictionModal(lessonName = "") {

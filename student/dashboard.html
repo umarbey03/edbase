@@ -26,11 +26,55 @@
 
     <!-- 📦 Main content -->
     <main class="max-w-6xl mx-auto px-6 py-8 space-y-10">
+        <!-- 🧮 Statistika Paneli -->
+        <section>
+            <h2 class="text-2xl font-semibold mb-4">📊 Statistika</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statsBox">
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <p class="text-3xl font-bold text-indigo-600" id="statCourses">0</p>
+                    <p class="text-sm text-gray-600">Kurslarim</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <p class="text-3xl font-bold text-green-600" id="statLessons">0</p>
+                    <p class="text-sm text-gray-600">Yakunlangan darslar</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <p class="text-xl font-medium text-blue-600" id="statLastLesson">—</p>
+                    <p class="text-sm text-gray-600">So‘nggi dars</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <p class="text-3xl font-bold text-yellow-500" id="statProgress">0%</p>
+                    <p class="text-sm text-gray-600">Umumiy progress</p>
+                </div>
+            </div>
+        </section>
+        
         <!-- 👨‍🎓 Mening kurslarim -->
         <section>
             <h2 class="text-2xl font-semibold mb-4">📚 Mening kurslarim</h2>
             <div id="myCourses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <p class="col-span-full text-gray-500">Yuklanmoqda...</p>
+            </div>
+        </section>
+
+        <!-- 🧠 XP / Level bo‘limi -->
+        <section>
+            <h2 class="text-2xl font-semibold mb-4">🎯 Faollik</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <p class="text-4xl font-bold text-indigo-600" id="statXP">0 XP</p>
+                    <p class="text-gray-600">Tajriba ballari</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <p class="text-4xl font-bold text-green-600" id="statLevel">Level 1</p>
+                    <p class="text-gray-600">Daraja</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow text-center">
+                    <div id="statBadges" class="flex flex-wrap justify-center gap-2">
+                        <!-- badge iconlari -->
+                    </div>
+                    <p class="text-gray-600 mt-2">Yutuqlar</p>
+                </div>
             </div>
         </section>
 
