@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./photos/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./photos/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./photos/favicon-16x16.png">
+  <title>Kurs tafsiloti - EdBase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+  <!-- 🔹 Navbar -->
+  <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50 transition">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <!-- Logo -->
+      <a href="/" class="text-2xl font-bold text-indigo-600">EdBase</a>
+
+      <!-- Desktop nav links -->
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+        <a href="/" class="nav-link">Bosh sahifa</a>
+        <a href="/courses.html" class="nav-link">Kurslar</a>
+        <a href="/blog.html" class="nav-link">Blog</a>
+        <a href="/about.html" class="nav-link">Biz haqimizda</a>
+        <a href="/help.html" class="nav-link">Yordam</a>
+      </div>
+      <!-- Auth kontrollerlar -->
+      <div class="hidden md:flex items-center gap-4">
+        <!-- 👤 Guest (Not logged in) -->
+        <div id="authButtons" class="flex gap-4">
+          <a href="/auth.html?mode=login" class="text-gray-700 hover:text-indigo-600 p-2">Kirish</a>
+          <a href="/auth.html?mode=register"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">Ro‘yxatdan
+            o‘tish</a>
+        </div>
+
+        <!-- ✅ Logged in -->
+        <div id="userButtons" class="hidden gap-4 items-center">
+          <a id="navUserName" href="/student/dashboard.html" class="text-green-600 hover:underline">
+            Dashboard</a>
+          <button id="logoutBtn" class="text-red-600 hover:underline">Chiqish</button>
+        </div>
+      </div>
+
+      <!-- Mobile toggle icon -->
+      <button id="mobileMenuToggle" class="md:hidden text-gray-700 focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </nav>
+
+    <!-- 📱 Mobile menu -->
+    <div id="mobileMenu" class="md:hidden hidden px-6 pb-4">
+      <div class="flex flex-col gap-3 text-sm font-medium">
+        <a href="/" class="nav-link">Bosh sahifa</a>
+        <a href="/courses.html" class="nav-link">Kurslar</a>
+        <a href="/blog.html" class="nav-link">Blog</a>
+        <a href="/about.html" class="nav-link">Biz haqimizda</a>
+        <a href="/help.html" class="nav-link">Yordam</a>
+        <div class="pt-2 border-t mt-2 flex flex-col gap-2">
+          <div id="mobileAuth" class="flex flex-col gap-2">
+            <a href="/auth.html" class="text-gray-700 hover:text-indigo-600">Kirish</a>
+            <a href="/auth.html?mode=register"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">
+              Ro‘yxatdan o‘tish</a>
+          </div>
+          <div id="mobileUser" class="hidden flex-col gap-2">
+            <a id="navUserName" href="/student/dashboard.html"
+              class="bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">
+              Dashboard</a>
+            <button id="mobileLogout" class="text-center text-red-600 hover:underline">Chiqish</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- Breadcrumb navigatsiya -->
+  <div class="max-w-7xl mx-auto mt-6 px-4">
+    <a href="./courses.html" id="breadcrumb" class="text-sm text-indigo-600 hover:underline">
+      ← Barcha kurslar
+    </a>
+  </div>
+  <!-- 🔹 Kurs ma’lumotlari -->
+  <main class="max-w-5xl mx-auto px-6 py-12" id="courseContainer">
+    <p class="text-center text-gray-500">Yuklanmoqda...</p>
+  </main>
+
+  <!-- 🔹 Yakuniy CTA -->
+  <section class="bg-gradient-to-r from-indigo-700 to-indigo-600 text-white py-24 px-6 relative overflow-hidden">
+    <!-- Dekorativ gradient to'qimalar -->
+    <div class="absolute -top-10 -left-10 w-40 h-40 bg-indigo-900 opacity-20 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-60 h-60 bg-indigo-800 opacity-10 rounded-full blur-2xl"></div>
+
+    <div class="max-w-3xl mx-auto text-center relative z-10">
+      <h2 class="text-4xl font-bold mb-6 leading-tight">O‘rganishni bugunoq boshlang!</h2>
+      <p class="text-lg md:text-xl text-indigo-100 mb-8">EdBase — bu bilim, daromad va kelajak sari ochilgan
+        eshikdir.</p>
+      <a href="auth.html"
+        class="inline-block bg-white text-indigo-700 font-semibold px-8 py-4 rounded-xl text-lg shadow hover:bg-gray-100 transition">
+        🎓 Ro‘yxatdan o‘tish
+      </a>
+    </div>
+  </section>
+
+  <!-- 🔹 Footer -->
+  <footer class="bg-gray-100 border-t py-10 text-sm text-gray-700">
+    <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+
+      <!-- Logo & Slogan -->
+      <div>
+        <a href="#hero" class="text-2xl font-bold text-indigo-600">EdBase</a>
+        <p class="mt-2 text-gray-600">Bilim ol, o‘rgat va yangi imkoniyatlarga eshik och.</p>
+      </div>
+
+      <!-- Platforma -->
+      <div>
+        <h4 class="font-semibold mb-2">Platforma</h4>
+        <ul class="space-y-2">
+          <li><a href="about.html" class="hover:text-indigo-600">Biz haqimizda</a></li>
+          <li><a href="courses.html" class="hover:text-indigo-600">Kurslar</a></li>
+          <li><a href="blog.html" class="hover:text-indigo-600">Blog</a></li>
+          <li><a href="help.html" class="hover:text-indigo-600">Yordam / FAQ</a></li>
+        </ul>
+      </div>
+
+      <!-- Aloqa -->
+      <div>
+        <h4 class="font-semibold mb-2">Aloqa</h4>
+        <ul class="space-y-2">
+          <li><a href="mailto:support@edbase.uz" class="hover:text-indigo-600">support@edbase.uz</a></li>
+          <li><a href="tel:+998712001122" class="hover:text-indigo-600">+998 71 200 11 22</a></li>
+          <li><a href="https://goo.gl/maps/..." class="hover:text-indigo-600">Toshkent, O‘zbekiston</a></li>
+        </ul>
+      </div>
+
+      <!-- Ijtimoiy tarmoqlar -->
+      <div>
+        <h4 class="font-semibold mb-2">Bizni kuzating</h4>
+        <div class="flex space-x-4 mt-2">
+          <a href="https://t.me/edbase" target="_blank" class="hover:text-indigo-600" title="Telegram">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9.5 15.5l10-9.5L4 12l4 2 1.5 5 3-3.5z" />
+            </svg>
+          </a>
+          <a href="https://instagram.com/edbase" target="_blank" class="hover:text-indigo-600" title="Instagram">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 2c1.65 0 3 1.35 3 3v10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10zm-5 3a5 5 0 110 10 5 5 0 010-10zm0 2c-1.66 0-3 1.34-3 3s1.34 3 3 3a3 3 0 000-6zm4.5-.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
+            </svg>
+          </a>
+          <!-- Qo‘shilishi mumkin: YouTube, Facebook, LinkedIn -->
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-gray-500 mt-10">© 2025 EdBase. Barcha huquqlar himoyalangan.</p>
+  </footer>
+  <!-- 🔹 JS -->
+  <script type="module" src="/js/course.js"></script>
+  <!-- <script type="module" src="/js/seedFirestore.js"></script> -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const currentPath = window.location.pathname;
+
+      // 🟢 Navbar linklaridan aktivini ajratish
+      document.querySelectorAll(".nav-link").forEach(link => {
+        const href = link.getAttribute("href");
+
+        if (href === currentPath || (href === "/" && currentPath === "/")) {
+          link.classList.add("text-indigo-600", "font-semibold");
+        } else {
+          link.classList.remove("text-indigo-600", "font-semibold");
+        }
+      });
+
+      // 📱 Mobil menyuni ochish/yopish
+      const toggleBtn = document.getElementById("mobileMenuToggle");
+      const mobileMenu = document.getElementById("mobileMenu");
+
+      if (toggleBtn && mobileMenu) {
+        toggleBtn.addEventListener("click", () => {
+          mobileMenu.classList.toggle("hidden");
+        });
+      }
+    });
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      const authButtons = document.getElementById("authButtons");
+      const userButtons = document.getElementById("userButtons");
+      const navUserName = document.getElementById("navUserName");
+
+      const mobileAuth = document.getElementById("mobileAuth");
+      const mobileUser = document.getElementById("mobileUser");
+
+      if (currentUser) {
+        // 👤 Auth bo‘lsa
+        authButtons.classList.add("hidden");
+        userButtons.classList.remove("hidden");
+        navUserName.textContent = currentUser.name || "Foydalanuvchi";
+
+        mobileAuth.classList.add("hidden");
+        mobileUser.classList.remove("hidden");
+      } else {
+        // 👥 Guest
+        authButtons.classList.remove("hidden");
+        userButtons.classList.add("hidden");
+
+        mobileAuth.classList.remove("hidden");
+        mobileUser.classList.add("hidden");
+      }
+
+      // 🔓 Logout
+      document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        localStorage.removeItem("currentUser");
+        window.location.href = "/";
+      });
+
+      document.getElementById("mobileLogout")?.addEventListener("click", () => {
+        localStorage.removeItem("currentUser");
+        window.location.href = "/";
+      });
+    });
+  </script>
+</body>
+
+</html>

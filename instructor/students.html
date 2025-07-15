@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>O‘quvchilar | Edbase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    <!-- ✅ UNIVERSAL NAVBAR -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 id="user-greeting" class="text-xl font-bold text-blue-600">EdBase.uz</h1>
+
+            <!-- 🔘 Mobile toggle -->
+            <button id="menu-toggle" class="lg:hidden text-gray-700 focus:outline-none">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            <!-- 🔗 Desktop links -->
+            <div class="hidden lg:flex items-center space-x-6">
+                <a href="/instructor/dashboard.html" class="text-blue-500 hover:underline">Dashboard</a>
+                <a href="/instructor/courses.html" class="text-blue-500 hover:underline">My Courses</a>
+                <a href="/instructor/new-course.html" class="text-blue-500 hover:underline">Create Course</a>
+                <a href="/instructor/students.html" class="text-indigo-600 font-semibold hover:underline">Students</a>
+                <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded transition">
+                    Chiqish
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 🔘 Sidebar (mobile) -->
+    <div id="mobile-menu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform duration-300 z-50 lg:hidden">
+        <div class="p-4 space-y-4">
+            <span id="user-greeting-mobile" class="text-gray-700 font-medium block">Assalomu alaykum</span>
+            <a href="/instructor/dashboard.html" class="block text-blue-500 hover:underline">Dashboard</a>
+            <a href="/instructor/courses.html" class="block text-blue-500 hover:underline">My Courses</a>
+            <a href="/instructor/new-course.html" class="block text-blue-500 hover:underline">Create Course</a>
+            <a href="/instructor/students.html" class="block text-indigo-600 hover:underline">Students</a>
+            <button id="logout-btn-mobile" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded w-full">
+                Chiqish
+            </button>
+        </div>
+    </div>
+
+    <!-- 🔲 Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 lg:hidden"></div>
+
+    <!-- 📚 Kontent -->
+    <div class="max-w-7xl mx-auto p-6">
+        <h2 class="text-2xl font-bold mb-6">Mening o‘quvchilarim</h2>
+        <div class="overflow-x-auto bg-white rounded shadow">
+            <table class="min-w-full text-sm text-left border">
+                <thead class="bg-gray-100 text-xs text-gray-700 uppercase">
+                    <tr>
+                        <th class="px-4 py-2">#</th>
+                        <th class="px-4 py-2">Ism</th>
+                        <th class="px-4 py-2">Email</th>
+                        <th class="px-4 py-2">Kurslar</th>
+                        <th class="px-4 py-2">Ro‘yxatdan o‘tgan</th>
+                        <th class="px-4 py-2">Amal</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body" class="divide-y bg-white">
+                    <!-- 🔄 Loading bo‘lsa yoki bo‘sh bo‘lsa, mana shu qatordan boshlanadi -->
+                    <tr class="animate-pulse bg-gray-50">
+                        <td class="px-4 py-3" colspan="6">
+                            <div class="h-4 bg-gray-200 rounded w-full "></div>
+                        </td>
+                    </tr>
+                    <tr class="animate-pulse bg-gray-50">
+                        <td class="px-4 py-3" colspan="6">
+                            <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 🔍 Modal -->
+        <div id="student-modal"
+            class="fixed inset-0 bg-black bg-opacity-40 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh] relative">
+                <button id="close-student-modal"
+                    class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-xl">&times;</button>
+                <h2 class="text-lg font-bold mb-4">O‘quvchi Tafsilotlari</h2>
+                <div id="student-detail-content">
+                    <!-- Dynamic student info -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./students.js"></script>
+    <!-- ✅ Script -->
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const overlay = document.getElementById('overlay');
+        const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            mobileMenu.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        // Optional: Logout ishlovchisi (mobil)
+        logoutBtnMobile.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('currentUser');
+                window.location.href = '/auth.html?mode=login';
+            } catch (err) {
+                alert('Chiqishda xatolik yuz berdi!');
+            }
+        });
+
+        // Mobile user greeting (sync with desktop)
+        document.getElementById('user-greeting-mobile').textContent =
+            document.getElementById('user-greeting')?.textContent || "Assalomu alaykum";
+    </script>
+</body>
+
+</html>

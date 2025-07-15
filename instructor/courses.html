@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kurslarim | Edbase.uz</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="../photos/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png" />
+  <link rel="manifest" href="../photos/site.webmanifest" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+  <!-- ✅ UNIVERSAL NAVBAR -->
+  <nav class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 id="user-greeting" class="text-xl font-bold text-blue-600">EdBase.uz</h1>
+
+      <!-- 🔘 Mobile toggle -->
+      <button id="menu-toggle" class="lg:hidden text-gray-700 focus:outline-none">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- 🔗 Desktop links -->
+      <div class="hidden lg:flex items-center space-x-6">
+        <a href="/instructor/dashboard.html" class="text-blue-500 hover:underline">Dashboard</a>
+        <a href="/instructor/courses.html" class="text-indigo-600 font-semibold hover:underline">My Courses</a>
+        <a href="/instructor/new-course.html" class="text-blue-500 hover:underline">Create Course</a>
+        <a href="/instructor/students.html" class="text-blue-500 hover:underline">Students</a>
+        <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded transition">
+          Chiqish
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 🔘 Sidebar (mobile) -->
+  <div id="mobile-menu"
+    class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform duration-300 z-50 lg:hidden">
+    <div class="p-4 space-y-4">
+      <span id="user-greeting-mobile" class="text-gray-700 font-medium block">Assalomu alaykum</span>
+      <a href="/instructor/dashboard.html" class="block text-blue-500 hover:underline">Dashboard</a>
+      <a href="/instructor/courses.html" class="block text-indigo-600 font-semibold hover:underline">My Courses</a>
+      <a href="/instructor/new-course.html" class="block text-blue-500 hover:underline">Create Course</a>
+      <a href="/instructor/students.html" class="block text-blue-500 hover:underline">Students</a>
+      <button id="logout-btn-mobile" class="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded w-full">
+        Chiqish
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔲 Overlay -->
+  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 lg:hidden"></div>
+
+  <!-- 📄 Kontent -->
+  <div class="max-w-7xl mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-6">Kurslarim</h2>
+
+    <!-- 🔽 Filtr -->
+    <div class="mb-6 flex items-center gap-4">
+      <select id="status-filter" class="border px-3 py-2 rounded">
+        <option value="all">Barchasi</option>
+        <option value="draft">Qoralama</option>
+        <option value="under_review">Ko‘rib chiqilmoqda</option>
+        <option value="published">E'lon qilingan</option>
+      </select>
+      <button id="show-courses" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Filterni
+        qo‘llash</button>
+    </div>
+
+    <!-- 🔄 Loader -->
+    <div id="loader" class="text-center py-4 hidden">⏳ Yuklanmoqda...</div>
+
+    <!-- ❌ Kurslar yo‘q -->
+    <div id="no-courses" class="text-center text-gray-500 hidden">Hech qanday kurs topilmadi.</div>
+
+    <!-- 📚 Kurslar -->
+    <div id="courses-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <tr class="animate-pulse bg-gray-50">
+        <td class="px-4 py-3" colspan="6">
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+        </td>
+      </tr>
+      <tr class="animate-pulse bg-gray-50">
+        <td class="px-4 py-3" colspan="6">
+          <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+        </td>
+      </tr>
+    </div>
+  </div>
+
+  <!-- 📊 Statistika Modal -->
+  <div id="analytics-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white max-w-2xl w-full rounded-lg shadow-lg p-6 relative">
+      <button id="close-analytics"
+        class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl">&times;</button>
+      <h3 class="text-xl font-semibold mb-4">📊 Kurs statistikasi</h3>
+      <div id="analytics-content" class="space-y-4">
+        <p>Yuklanmoqda...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="./courses.js"></script>
+  <!-- ✅ Script -->
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('overlay');
+    const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+
+    menuToggle.addEventListener('click', () => {
+      mobileMenu.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+    });
+
+    overlay.addEventListener('click', () => {
+      mobileMenu.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    });
+
+    // Optional: Logout ishlovchisi (mobil)
+    logoutBtnMobile.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        localStorage.removeItem('currentUser');
+        window.location.href = '/auth.html?mode=login';
+      } catch (err) {
+        alert('Chiqishda xatolik yuz berdi!');
+      }
+    });
+
+    // Mobile user greeting (sync with desktop)
+    document.getElementById('user-greeting-mobile').textContent =
+      document.getElementById('user-greeting')?.textContent || "Assalomu alaykum";
+  </script>
+</body>
+
+</html>

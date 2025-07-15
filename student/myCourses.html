@@ -1,0 +1,177 @@
+<!-- 📁 myCourses.html -->
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../photos/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png" />
+    <link rel="manifest" href="../photos/site.webmanifest" />
+    <title>Mening Kurslarim | EdBase</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script type="module" src="./myCourses.js" defer></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex overflow-hidden">
+    <!-- Sidebar -->
+    <nav id="sidebar"
+        class="fixed inset-y-0 left-0 w-64 bg-white shadow-md p-6 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col md:min-h-screen z-40">
+        <h2 class="text-xl font-bold mb-8 text-indigo-600">🎓 EdBase</h2>
+        <ul class="space-y-4">
+            <li><a href="/student/dashboard.html"
+                    class="block text-gray-700 hover:text-indigo-600 font-semibold">Dashboard</a></li>
+            <li><a href="/student/myCourses.html" class="block text-indigo-600 font-semibold">Mening kurslarim</a></li>
+            <li><a href="/student/profile.html" class="block text-gray-700 hover:text-indigo-600 font-semibold">Profil
+                    sozlamalari</a></li>
+            <li><a href="/student/tests.html"
+                    class="pointer-events-none opacity-50 block text-gray-700 font-semibold">Testlar</a></li>
+            <li><a href="/student/forum.html"
+                    class="pointer-events-none opacity-50 block text-gray-700 font-semibold">Forum</a></li>
+            <li><button id="logoutBtn"
+                    class="text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200">Chiqish</button></li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        <!-- Navbar -->
+        <header class="bg-white shadow flex-none px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+            <button id="sidebarToggle" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <h1 class="text-xl font-bold text-indigo-600">Mening Kurslarim</h1>
+            <span id="userName" class="text-sm font-medium text-gray-700"></span>
+        </header>
+
+        <!-- Content -->
+        <section class="flex-1 overflow-auto w-full max-w-6xl mx-auto px-6 py-8">
+            <div id="myCourses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Kurs kartalari shu yerga yuklanadi -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { db } from '../js/firebase-config.js';
+        import {
+            doc,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // 👤 Mahalliy foydalanuvchi
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        if (!currentUser || currentUser.role !== "student") {
+            window.location.href = "/auth.html?redirectUrl=/student/myCourses.html";
+        }
+
+        const logoutBtn = document.getElementById("logoutBtn");
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("currentUser");
+            window.location.href = "/auth.html";
+        });
+
+        const myCoursesBox = document.getElementById("myCourses");
+
+        async function loadMyCourses(uid) {
+            try {
+                const userSnap = await getDoc(doc(db, "users", uid));
+                const userData = userSnap.data();
+                const enrolled = Array.isArray(userData?.enrolledCourses) ? userData.enrolledCourses : [];
+
+                if (enrolled.length === 0) {
+                    myCoursesBox.innerHTML = `<p class="col-span-full text-gray-500">Sizda hali kurslar mavjud emas.</p>`;
+                    return;
+                }
+
+                for (const courseId of enrolled) {
+                    const courseSnap = await getDoc(doc(db, "courses", courseId));
+                    if (!courseSnap.exists()) continue;
+                    const course = courseSnap.data();
+
+                    // 🔁 Progress hisoblash
+                    let totalLessons = 0;
+                    let completedLessons = 0;
+                    let lastWatchedTitle = "Boshlanmagan";
+                    let lastWatchedAt = null;
+
+                    if (Array.isArray(course.modules)) {
+                        for (const module of course.modules) {
+                            const lessons = module.lessons || [];
+                            totalLessons += lessons.length;
+
+                            for (const lesson of lessons) {
+                                if (!lesson?.id) continue;
+
+                                const progressRef = doc(db, "users", uid, "lessonProgress", lesson.id);
+                                const progressSnap = await getDoc(progressRef);
+                                if (progressSnap.exists()) {
+                                    completedLessons++;
+
+                                    const watchedAt = progressSnap.data().watchedAt?.toDate?.();
+                                    if (!lastWatchedAt || (watchedAt && watchedAt > lastWatchedAt)) {
+                                        lastWatchedAt = watchedAt;
+                                        lastWatchedTitle = lesson.title;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    const progressPercent = totalLessons ? Math.floor((completedLessons / totalLessons) * 100) : 0;
+
+                    const card = document.createElement("div");
+                    card.className = "bg-white p-4 rounded shadow hover:shadow-md transition";
+
+                    card.innerHTML = `
+            <img src="${course.image}" alt="${course.title}" class="w-full h-40 object-cover rounded mb-3" />
+            <h3 class="text-lg font-bold text-gray-800 mb-1">${course.title}</h3>
+            <p class="text-sm text-gray-600 mb-1">👨‍🏫 ${course.instructorName}</p>
+            <p class="text-sm text-gray-500 mb-2">💰 ${course.price}</p>
+
+            <div class="mb-2">
+              <div class="w-full bg-gray-200 h-2 rounded-full">
+                <div class="h-2 bg-indigo-500 rounded-full" style="width: ${progressPercent}%;"></div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">${completedLessons}/${totalLessons} dars (${progressPercent}%)</p>
+            </div>
+
+            <p class="text-xs text-gray-500 mb-2">▶️ Oxirgi dars: ${lastWatchedTitle}</p>
+
+            <a href="learn.html?courseId=${courseId}" class="inline-block mt-2 bg-indigo-600 text-white px-4 py-2 text-sm rounded hover:bg-indigo-700 transition">
+              Davom etish
+            </a>
+          `;
+
+                    myCoursesBox.appendChild(card);
+                }
+
+            } catch (err) {
+                console.error("❌ Kurslarni yuklashda xatolik:", err);
+                myCoursesBox.innerHTML = `<p class="col-span-full text-red-500">Kurslarni yuklashda xatolik yuz berdi.</p>`;
+            }
+        }
+
+        loadMyCourses(currentUser.uid);
+    </script>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+
+        toggleBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    </script>
+</body>
+
+</html>

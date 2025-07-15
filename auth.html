@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./photos/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./photos/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./photos/favicon-16x16.png">
+  <title>Kirish / Ro‘yxatdan o‘tish | EdBase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="./js/auth.js"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen px-4">
+  <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+    <h2 id="formTitle" class="text-2xl font-bold text-center mb-6">Kirish</h2>
+    <form id="authForm" class="space-y-4">
+      <div id="fullNameGroup" class="hidden">
+        <label class="block text-sm font-medium">To‘liq ism</label>
+        <input type="text" id="fullName" class="w-full border px-3 py-2 rounded" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Email</label>
+        <input type="email" id="email" required class="w-full border px-3 py-2 rounded" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Parol</label>
+        <input type="password" id="password" required class="w-full border px-3 py-2 rounded" />
+      </div>
+      <div id="confirmPasswordGroup" class="hidden">
+        <label class="block text-sm font-medium">Parolni tasdiqlang</label>
+        <input type="password" id="confirmPassword" class="w-full border px-3 py-2 rounded" />
+      </div>
+      <div id="roleGroup" class="hidden">
+        <label class="block text-sm font-medium">Rol tanlang</label>
+        <select id="roleSelect" class="w-full border px-3 py-2 rounded">
+          <option value="student">🎓 Student</option>
+          <option value="instructor">👨‍🏫 Instructor</option>
+          <option value="learningCenter">🏢 O‘quv markaz</option>
+          <option value="employer">💼 Employer</option>
+        </select>
+      </div>
+      <p id="errorBox" class="hidden text-sm text-red-600"></p>
+      <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
+        Davom etish
+      </button>
+    </form>
+    <p class="text-sm text-center mt-4">
+      <span id="switchText">Ro‘yxatdan o‘tmaganmisiz?</span>
+      <button id="switchBtn" class="text-indigo-600 font-semibold hover:underline">Ro‘yxatdan o‘tish</button>
+    </p>
+  </div>
+</body>
+
+</html>

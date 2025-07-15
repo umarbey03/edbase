@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../photos/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../photos/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../photos/favicon-16x16.png" />
+    <link rel="manifest" href="../photos/site.webmanifest" />
+    <title>Dashboard | Student | EdBase</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+    <script type="module" src="student-dashboard.js" defer></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <nav id="sidebar"
+        class="fixed inset-y-0 left-0 w-64 bg-white shadow-md p-6 transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col md:min-h-screen z-40">
+        <h2 class="text-xl font-bold mb-8 text-indigo-600">🎓 EdBase</h2>
+        <ul class="space-y-4">
+            <li><a href="/student/dashboard.html"
+                    class="block text-gray-700 hover:text-indigo-600 font-semibold">Dashboard</a></li>
+            <li><a href="/student/myCourses.html" class="block text-gray-700 hover:text-indigo-600 font-semibold">Mening
+                    kurslarim</a></li>
+            <li><a href="/student/profile.html" class="block text-gray-700 hover:text-indigo-600 font-semibold">Profil
+                    sozlamalari</a></li>
+            <li><a href="/student/tests.html"
+                    class="pointer-events-none opacity-50 block text-gray-700 hover:text-indigo-600 font-semibold">Testlar</a>
+            </li>
+            <li><a href="/student/forum.html"
+                    class="pointer-events-none opacity-50 block text-gray-700 hover:text-indigo-600 font-semibold">Forum</a>
+            </li>
+            <li><button id="logoutBtn"
+                    class="text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200">Chiqish</button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden w-full">
+
+        <!-- Navbar -->
+        <header class="bg-white shadow flex-none px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+            <button id="sidebarToggle" class="md:hidden text-gray-700 focus:outline-none">
+                <!-- Hamburger icon -->
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <h1 class="text-xl font-bold text-indigo-600">Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <span id="userName" class="text-sm font-medium text-gray-700"></span>
+            </div>
+        </header>
+
+        <!-- Scrollable content -->
+        <section class="flex-1 overflow-auto w-full max-w-6xl w-full px-6 py-8 space-y-10
+         md:mx-auto">
+            <!-- 🧮 Statistika Paneli -->
+            <section>
+                <h2 class="text-2xl font-semibold mb-4">📊 Statistika</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statsBox">
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <p class="text-3xl font-bold text-indigo-600" id="statCourses">0</p>
+                        <p class="text-sm text-gray-600">Kurslarim</p>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <p class="text-3xl font-bold text-green-600" id="statLessons">0</p>
+                        <p class="text-sm text-gray-600">Yakunlangan darslar</p>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <p class="text-xl font-medium text-blue-600" id="statLastLesson">—</p>
+                        <p class="text-sm text-gray-600">So‘nggi dars</p>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <p class="text-3xl font-bold text-yellow-500" id="statProgress">0%</p>
+                        <p class="text-sm text-gray-600">Umumiy progress</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 👨‍🎓 Mening kurslarim -->
+            <section>
+                <h2 class="text-2xl font-semibold mb-4">📚 Mening kurslarim</h2>
+                <div id="myCourses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="col-span-full text-gray-500">Yuklanmoqda...</p>
+                </div>
+            </section>
+
+            <!-- 🧠 XP / Level bo‘limi -->
+            <section>
+                <h2 class="text-2xl font-semibold mb-4">🎯 Faollik</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <p class="text-4xl font-bold text-indigo-600" id="statXP">0 XP</p>
+                        <p class="text-gray-600">Tajriba ballari</p>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <p class="text-4xl font-bold text-green-600" id="statLevel">Level 1</p>
+                        <p class="text-gray-600">Daraja</p>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow text-center">
+                        <div id="statBadges" class="flex flex-wrap justify-center gap-2">
+                            <!-- badge iconlari -->
+                        </div>
+                        <p class="text-gray-600 mt-2">Yutuqlar</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🚀 Tavsiya etilgan -->
+            <section>
+                <h2 class="text-2xl font-semibold mb-4">🚀 Siz uchun tavsiya</h2>
+                <div id="recommendedCourses" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Kurs kartalari -->
+                </div>
+            </section>
+        </section>
+    </main>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+
+        toggleBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    </script>
+</body>
+
+</html>
