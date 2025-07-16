@@ -1,23 +1,45 @@
-import { db, auth } from './firebase-config.js';
-import { doc, getDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { db, auth } from '../js/firebase-config.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const coursesGrid = document.getElementById('coursesGrid');
-const noCoursesText = document.getElementById('noCoursesText');
 const filterSelect = document.getElementById('filterCourses');
 const searchInput = document.getElementById('searchCoursesInput');
+const coursesGrid = document.getElementById('myCourses');
+const noCoursesText = document.getElementById('noCoursesText');
 
 let studentCourses = [];
 
+// 👤 Foydalanuvchini tekshirish
 auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    const studentRef = doc(db, 'students', user.uid);
-    const studentSnap = await getDoc(studentRef);
+  if (!user) {
+    window.location.href = "/auth.html?redirectUrl=/student/my-courses.html";
+    return;
+  }
 
-    if (studentSnap.exists()) {
-      const enrolled = studentSnap.data().enrolledCourses || [];
-      studentCourses = enrolled;
-      renderCourses();
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  if (!currentUser || currentUser.role !== "student") {
+    window.location.href = "/auth.html?redirectUrl=/student/my-courses.html";
+    return;
+  }
+
+  try {
+    const userRef = doc(db, 'users', user.uid); // ✅ Eslatma: "users" collection
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      noCoursesText.textContent = "Foydalanuvchi topilmadi.";
+      noCoursesText.classList.remove('hidden');
+      return;
     }
+
+    const userData = userSnap.data();
+    studentCourses = userData.enrolledCourses || [];
+
+    renderCourses();
+  } catch (err) {
+    console.error("❌ Foydalanuvchi ma'lumotlarini olishda xatolik:", err);
+    noCoursesText.textContent = "Xatolik yuz berdi.";
+    noCoursesText.classList.remove('hidden');
   }
 });
 
@@ -25,60 +47,79 @@ async function renderCourses() {
   coursesGrid.innerHTML = '';
   noCoursesText.classList.add('hidden');
 
-  if (studentCourses.length === 0) {
+  if (!studentCourses || studentCourses.length === 0) {
+    noCoursesText.textContent = "Sizda hali birorta kurs mavjud emas.";
     noCoursesText.classList.remove('hidden');
     return;
   }
 
-  for (const course of studentCourses) {
-    const courseRef = doc(db, 'courses', course.courseId);
+  const selectedFilter = filterSelect?.value || 'all';
+  const searchText = searchInput?.value?.trim().toLowerCase() || "";
+
+  let anyMatch = true;
+
+  for (const courseId of studentCourses) {
+    const courseRef = doc(db, 'courses', courseId);
     const courseSnap = await getDoc(courseRef);
-    if (courseSnap.exists()) {
-      const courseData = courseSnap.data();
 
-      // Filter
-      const selectedFilter = filterSelect.value;
-      if (selectedFilter !== 'all' && course.status !== selectedFilter) continue;
+    if (!courseSnap.exists()) continue;
 
-      // Search
-      const searchText = searchInput.value.toLowerCase();
-      if (searchText && !courseData.title.toLowerCase().includes(searchText)) continue;
+    const courseData = courseSnap.data();
+    const imgUrl = courseData.imgUrl || courseData.image;
+    const title = courseData.title || "Noma'lum kurs";
+    const authorName = courseData.authorName || "Muallif";
+    const centerName = courseData.centerName || "Markaz";
+    const level = courseData.level || "Boshlang‘ich";
+    const language = courseData.language?.toUpperCase() || "UZ";
+    const price = courseData.isFree ? "Bepul" : (courseData.price?.toLocaleString() + " so‘m");
+    const enableCertificate = courseData.enableCertificate;
 
-      // Progress %
-      const percent = Math.floor((course.completedLessons / course.totalLessons) * 100);
+    const card = document.createElement('div');
+    card.className = "bg-white rounded-xl shadow-md p-4 flex flex-col gap-3 hover:shadow-lg transition border";
 
-      // HTML
-      const card = document.createElement('div');
-      card.className = "bg-white rounded shadow p-4 flex flex-col gap-2";
+    card.innerHTML = `
+    <img src="${imgUrl}" alt="${title}" class="rounded-md h-40 w-full object-cover mb-2 shadow-sm" />
 
-      card.innerHTML = `
-        <img src="${courseData.coverImage || courseData.imgUrl}" alt="${courseData.title}" class="rounded h-40 w-full object-cover">
-        <h3 class="text-lg font-semibold">${courseData.title}</h3>
-        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-          <div class="bg-blue-500 h-2" style="width: ${percent}%"></div>
-        </div>
-        <p class="text-sm text-gray-500">${course.completedLessons} / ${course.totalLessons} dars</p>
-        <span class="text-xs inline-block px-2 py-1 rounded-full ${
-          course.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-        }">${course.status === 'completed' ? 'Tugallangan' : 'Davom etmoqda'}</span>
-        <a href="/course/${course.courseId}/lesson/${course.lastViewed}" class="text-blue-600 hover:underline mt-1">
-          ${course.status === 'completed' ? '🔖 Sertifikat' : '➡️ Davom etish'}
-        </a>
-      `;
-      coursesGrid.appendChild(card);
-    }
+    <h3 class="text-lg font-bold text-gray-800 line-clamp-2">${title}</h3>
+
+    <div class="text-sm text-gray-600">
+      👨‍🏫 <span>${authorName}</span><br>
+      🏫 <span>${centerName}</span>
+    </div>
+
+    <div class="flex items-center justify-between text-xs text-gray-500">
+      <span>📘 ${level}</span>
+      <span>🌐 ${language}</span>
+    </div>
+
+    <div class="text-sm font-semibold text-gray-800">
+      💰 ${price}
+    </div>
+
+    ${enableCertificate
+        ? `<span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded w-fit">📄 Sertifikat mavjud</span>`
+        : `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded w-fit">Sertifikatsiz</span>`
+      }
+
+    <a href="./learn.html?courseId=${courseId}" 
+       class="mt-2 inline-block bg-indigo-600 text-white text-sm px-4 py-2 rounded hover:bg-indigo-700 transition">
+      ➡️ Davom etish
+    </a>
+  `;
+
+    coursesGrid.appendChild(card);
   }
 
-  // Agar filtrlab hech narsa topilmasa
-  if (coursesGrid.innerHTML.trim() === '') {
+  // ✳️ Faqat agar hech bir kurs search yoki filter bo‘yicha chiqmasa
+  if (!anyMatch) {
     noCoursesText.textContent = "Hech qanday mos kurs topilmadi.";
     noCoursesText.classList.remove('hidden');
   }
 }
 
-// 🔄 Eventlar
-filterSelect.addEventListener('change', renderCourses);
-searchInput.addEventListener('input', () => {
+// 🔄 Filtrlash va qidirish eventlari
+filterSelect?.addEventListener('change', renderCourses);
+searchInput?.addEventListener('input', () => {
   clearTimeout(window._searchDelay);
   window._searchDelay = setTimeout(renderCourses, 300);
 });

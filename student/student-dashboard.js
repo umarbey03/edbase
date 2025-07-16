@@ -148,12 +148,13 @@ async function loadRecommendedCourses() {
     try {
         const q = query(collection(db, "courses"));
         const snap = await getDocs(q);
-        const allCourses = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const allCourses = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(c => c.status === "published"); // ✅ faqat published kurslar
 
-        // 🔍 User o‘qiyotgan (enrolled yoki purchased) kurslar filtrlanadi
         const blockedCourses = new Set([
-            ...(currentUser.enrolledCourses || []),
-            ...(currentUser.purchasedCourses || [])
+            ...(currentUser?.enrolledCourses || []),
+            ...(currentUser?.purchasedCourses || [])
         ]);
 
         const filtered = allCourses.filter(c => !blockedCourses.has(c.id));
@@ -166,28 +167,28 @@ async function loadRecommendedCourses() {
     }
 }
 
-// 🎨 Kurs kartasi chizish
+// 🎨 Kurs kartasi + CTA chizish
 function renderCourses(courses, container) {
     container.innerHTML = "";
 
-    // if (!courses || courses.length === 0) {
-    //     container.innerHTML = `<p class="col-span-full text-gray-500">Hech narsa topilmadi.</p>`;
-    //     return;
-    // }
+    if (courses.length > 0) {
+        courses.forEach(course => {
+            const div = document.createElement("div");
+            div.className = "bg-white p-4 rounded shadow hover:shadow-md transition";
+            div.innerHTML = `
+        <img src="${course.imgUrl || '/img/default-course.jpg'}" 
+             alt="${course.title}" 
+             class="rounded mb-3 w-full h-40 object-cover" />
+        <h3 class="font-semibold text-lg">${course.title}</h3>
+        <p class="text-sm text-gray-700">👨‍🏫 ${course.instructorName || course.authorName || 'Muallif'}</p>
+        <p class="text-sm text-gray-500">${course.isFree ? "Bepul" : (course.price + " UZS")}</p>
+        <a href="/course.html?id=${course.id}" class="inline-block mt-3 bg-indigo-600 text-white px-4 py-2 text-sm rounded hover:bg-indigo-700">Ko‘rish</a>
+      `;
+            container.appendChild(div);
+        });
+    }
 
-    courses.forEach(course => {
-        const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded shadow hover:shadow-md transition";
-        div.innerHTML = `
-            <img src="${course.image || course.imgUrl}" alt="${course.title}" class="rounded mb-3 w-full h-40 object-cover" />
-            <h3 class="font-semibold text-lg">${course.title}</h3>
-            <p class="text-sm text-gray-700">👨‍🏫 ${course.instructorName || course.authorName}</p>
-            <p class="text-sm text-gray-500">${course.price}</p>
-            <a href="/course.html?id=${course.id}" class="inline-block mt-3 bg-indigo-600 text-white px-4 py-2 text-sm rounded hover:bg-indigo-700">Ko‘rish</a>
-        `;
-        container.appendChild(div);
-    });
-
+    // 📦 Har qanday holatda CTA card chiqadi
     // CTA card qo‘shish
     const ctaDiv = document.createElement("div");
     ctaDiv.className = `
@@ -202,10 +203,9 @@ function renderCourses(courses, container) {
     ctaDiv.innerHTML = `
     <h3 class="text-2xl font-bold mb-3">O‘z kursingizni boshlang</h3>
     <p class="mb-5 max-w-xs">Yangi kurs yaratish yoki o‘qishni boshlash uchun shu yerni bosing</p>
-    <a href="/create-course.html" class="bg-white text-indigo-700 px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition">Kurs yaratish</a>
+    <a href="" class="bg-white text-indigo-700 px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition">Kurs yaratish</a>
 `;
     container.appendChild(ctaDiv);
-
 }
 
 async function loadStats(uid) {

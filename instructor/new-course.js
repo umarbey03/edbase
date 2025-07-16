@@ -1,232 +1,281 @@
-
+// 📦 Firestore & Firebase config import
 import { db, auth, storage } from '../js/firebase-config.js';
 import {
-    collection,
-    addDoc,
-    doc,
-    getDoc,
-    updateDoc
+  collection, addDoc, updateDoc, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-    ref,
-    uploadBytes,
-    getDownloadURL
+  ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ❗ Referrer orqali noto'g'ri kelingan holatda edit ID ni tozalash
-if (!document.referrer.includes('courses.html') && !document.referrer.includes('dashboard')) {
-    sessionStorage.removeItem('editCourseId');
+window.addEventListener("DOMContentLoaded", async () => {
+  const saveDraftBtn = document.getElementById("save-draft");
+  const submitReviewBtn = document.getElementById("submit-review");
+  const accordionHeader = document.querySelector(".accordion-header");
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = "/auth.html?mode=login&redirectUrl=/instructor/new-course.html";
+      return;
+    }
+
+    accordionHeader?.addEventListener("click", (e) => {
+      e.preventDefault();
+      const body = document.querySelector(".accordion-body");
+      body.classList.toggle("hidden");
+    });
+
+    const addModuleBtn = document.getElementById("add-module");
+    addModuleBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      addModule();
+    });
+
+    const handleSubmit = async (status) => {
+      try {
+        const courseData = await buildCourseData(user, currentUser, status);
+        await saveCourse(courseData);
+      } catch (err) {
+        console.error("Kurs yaratishda xatolik:", err);
+        alert("Xatolik yuz berdi: " + err.message);
+      }
+    }
+
+    saveDraftBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleSubmit("draft");
+    });
+
+    submitReviewBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleSubmit("under_review");
+    });
+
+    const editId = sessionStorage.getItem('editCourseId');
+    if (editId) {
+      const courseDoc = await getDoc(doc(db, "courses", editId));
+      const data = courseDoc.data();
+
+      const formFields = [
+        ["course-title", data.title],
+        ["course-description", data.description],
+        ["course-category", data.category],
+        ["course-language", data.language],
+        ["course-level", data.level],
+        ["course-price", data.price],
+        ["course-img-url", data.imgUrl],
+        ["author-name", data.authorName],
+        ["center-name", data.centerName]
+      ];
+
+      formFields.forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value || "";
+      });
+
+      const certEl = document.getElementById("enable-certificate");
+      const freeEl = document.getElementById("course-free");
+      if (certEl) certEl.checked = !!data.enableCertificate;
+      if (freeEl) freeEl.checked = !!data.isFree;
+
+      data.modules.forEach(module => addModule(module));
+    }
+  });
+});
+
+function addModule(data = null) {
+  const moduleDiv = document.createElement('div');
+  moduleDiv.className = 'module bg-white p-5 rounded-2xl shadow-md border border-gray-200 space-y-3 relative';
+
+  const detailsEl = document.createElement('details');
+  detailsEl.open = true;
+  detailsEl.classList.add('group');
+
+  const summary = document.createElement('summary');
+  summary.className = 'flex justify-between items-center cursor-pointer select-none font-medium text-lg';
+
+  const inputWrapper = document.createElement('div');
+  inputWrapper.className = 'w-full flex gap-3 items-center';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = '🔩 Modul nomi';
+  input.value = data?.title || '';
+  input.className = 'module-title w-full border-2 border-blue-200 focus:border-blue-500 px-4 py-2 rounded-xl text-lg font-medium';
+  input.required = true;
+
+  // Prevent summary from toggling when typing
+  input.addEventListener('keydown', (e) => e.stopPropagation());
+  input.addEventListener('click', (e) => e.stopPropagation());
+
+  inputWrapper.appendChild(input);
+  summary.appendChild(inputWrapper);
+  detailsEl.appendChild(summary);
+
+  const lessonsContainer = document.createElement('div');
+  lessonsContainer.className = 'lessons-container space-y-4 mt-4';
+  detailsEl.appendChild(lessonsContainer);
+
+  const actionButtons = document.createElement('div');
+  actionButtons.className = 'flex items-center gap-3 justify-between mt-2';
+  actionButtons.innerHTML = `
+    <button type="button" class="add-lesson bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+      ➕ Dars qo‘shish
+    </button>
+    <button type="button" class="delete-module text-red-500 text-sm hover:underline">
+      🗑️ Modulni o‘chirish
+    </button>
+  `;
+  detailsEl.appendChild(actionButtons);
+
+  actionButtons.querySelector('.add-lesson')?.addEventListener('click', () => addLesson(lessonsContainer));
+  actionButtons.querySelector('.delete-module')?.addEventListener('click', () => moduleDiv.remove());
+
+  if (data?.lessons) {
+    data.lessons.forEach(lesson => addLesson(lessonsContainer, lesson));
+  }
+
+  moduleDiv.appendChild(detailsEl);
+  document.getElementById('modules-container')?.appendChild(moduleDiv);
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-    const form = document.getElementById("new-course-form");
-    const modulesContainer = document.getElementById("modules-container");
-    const addModuleBtn = document.getElementById("add-module");
-    const logoutBtn = document.getElementById("logout-btn");
+function addLesson(container, lessonData = {}) {
+  const lessonEl = document.createElement('div');
+  lessonEl.className = 'lesson flex flex-col gap-2 border p-3 rounded-xl bg-gray-50';
+  lessonEl.innerHTML = `
+    <div class="flex flex-wrap gap-3 items-center">
+      <input type="text" placeholder="Dars nomi" value="${lessonData.title || ''}" class="lesson-title w-1/3 border px-3 py-2 rounded" required />
+      <input type="number" placeholder="Uzunligi (soniya)" value="${lessonData.duration || ''}" class="lesson-duration w-1/4 border px-3 py-2 rounded" />
+      <select class="lesson-task-type w-1/4 border px-3 py-2 rounded">
+        <option value="" disabled ${lessonData.taskType ? '' : 'selected'}>Topshiriq turi</option>
+        <option value="open" ${lessonData.taskType === 'open' ? 'selected' : ''}>Ochiq</option>
+        <option value="test" ${lessonData.taskType === 'test' ? 'selected' : ''}>Test</option>
+        <option value="gap" ${lessonData.taskType === 'gap' ? 'selected' : ''}>Gap to‘ldirish</option>
+        <option value="file" ${lessonData.taskType === 'file' ? 'selected' : ''}>Fayl + izoh</option>
+      </select>
+      <button type="button" class="delete-lesson text-red-500 text-sm">🗑️ O‘chirish</button>
+    </div>
+    <div class="task-section mt-2">${getTaskSection(lessonData.taskType, lessonData.taskDesc || '')}</div>
+    <input type="file" accept="video/mp4" class="lesson-video w-full border px-3 py-2 rounded" />
+  `;
 
-    const courseId = sessionStorage.getItem('editCourseId');
+  lessonEl.querySelector('.delete-lesson').addEventListener('click', () => lessonEl.remove());
+  lessonEl.querySelector('.lesson-task-type').addEventListener('change', (e) => {
+    lessonEl.querySelector('.task-section').innerHTML = getTaskSection(e.target.value);
+  });
 
-    auth.onAuthStateChanged(async user => {
-        if (!user) {
-            window.location.href = '/auth.html?mode=login&redirectUrl=/instructor/new-course.html';
-            return;
-        }
+  container.appendChild(lessonEl);
+}
 
-        if (courseId) {
-            const courseSnap = await getDoc(doc(db, 'courses', courseId));
-            if (courseSnap.exists()) {
-                const course = courseSnap.data();
-
-                // Form qiymatlarini to'ldirish
-                document.getElementById('course-title').value = course.title || '';
-                document.getElementById('course-description').value = course.description || '';
-                document.getElementById('course-category').value = course.category || '';
-                document.getElementById('course-language').value = course.language || '';
-                document.getElementById('course-level').value = course.level || '';
-                document.getElementById('course-price').value = course.price || 0;
-                document.getElementById('course-free').checked = course.isFree || false;
-                document.getElementById('enable-certificate').checked = course.enableCertificate || false;
-
-                if (course.imgUrl) {
-                    const imgPreview = document.createElement('img');
-                    imgPreview.src = course.imgUrl;
-                    imgPreview.alt = "Kurs rasmi";
-                    imgPreview.className = "w-full h-40 object-cover rounded mb-3";
-
-                    const courseImgInput = document.getElementById("course-img");
-                    courseImgInput.insertAdjacentElement("beforebegin", imgPreview);
-                    document.getElementById("course-img-url").value = course.imgUrl;
-                }
-                // Modullarni chiqarish
-                modulesContainer.innerHTML = '';
-                course.modules.forEach(mod => addModule(mod));
-            }
-        }
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-        await signOut(auth);
-        localStorage.removeItem('currentUser');
-        window.location.href = '/auth.html?mode=login';
-    });
-
-    addModuleBtn.addEventListener("click", () => addModule());
-
-    function addModule(moduleData = null) {
-        const moduleEl = document.createElement('div');
-        moduleEl.className = 'module border p-4 rounded-lg space-y-2';
-        moduleEl.innerHTML = `
-      <input type="text" placeholder="Modul nomi" value="${moduleData?.title || ''}" class="module-title w-full border px-3 py-2 rounded" required />
-      <div class="lessons-container space-y-2"></div>
-      <button type="button" class="add-lesson bg-blue-500 text-white px-3 py-1 rounded">+ Dars qo‘shish</button>
-      <button type="button" class="delete-module text-red-500 hover:underline">O‘chirish</button>
+function getTaskSection(type, desc = '') {
+  if (!type) return '';
+  if (type === 'test') {
+    return `
+      <input type="text" placeholder="Savol" class="task-question w-full border px-3 py-2 rounded mb-2" value="${desc}" />
+      <input type="text" placeholder="A javobi" class="task-a w-full border px-3 py-1 rounded" />
+      <input type="text" placeholder="B javobi" class="task-b w-full border px-3 py-1 rounded" />
+      <input type="text" placeholder="C javobi" class="task-c w-full border px-3 py-1 rounded" />
+      <input type="text" placeholder="D javobi" class="task-d w-full border px-3 py-1 rounded" />
     `;
-        modulesContainer.appendChild(moduleEl);
+  }
+  return `<textarea placeholder="Izoh yoki topshiriq matni" class="lesson-task-desc w-full border px-3 py-2 rounded">${desc}</textarea>`;
+}
 
-        const lessonsContainer = moduleEl.querySelector('.lessons-container');
-        moduleEl.querySelector('.add-lesson').addEventListener('click', () => addLesson(lessonsContainer));
-        moduleEl.querySelector('.delete-module').addEventListener('click', () => moduleEl.remove());
+async function buildCourseData(user, currentUser, status) {
+  const getVal = (id) => document.getElementById(id)?.value?.trim() || "";
+  const getEl = (id) => document.getElementById(id);
 
-        if (moduleData) {
-            moduleData.lessons.forEach(lesson => addLesson(lessonsContainer, lesson));
-        }
-    }
+  let imgUrl = "";
+  const courseImg = getEl("course-img")?.files?.[0];
+  const imgUrlInput = getVal("course-img-url");
 
-    function addLesson(container, lessonData = {}) {
-        const lessonEl = document.createElement('div');
-        lessonEl.className = 'lesson flex flex-col gap-2 border p-2 rounded';
-        lessonEl.innerHTML = `
-      <div class="flex gap-2">
-        <input type="text" value="${lessonData.title || ''}" placeholder="Dars nomi" class="lesson-title w-1/3 border px-3 py-2 rounded" required />
-        <input type="number" value="${lessonData.duration || ''}" placeholder="Uzunligi (soniya)" class="lesson-duration w-1/4 border px-3 py-2 rounded" />
-        <select class="lesson-task-type w-1/4 border px-3 py-2 rounded">
-          <option value="" disabled ${lessonData.taskType ? '' : 'selected'}>Topshiriq turi</option>
-          <option value="open" ${lessonData.taskType === 'open' ? 'selected' : ''}>Ochiq</option>
-          <option value="test" ${lessonData.taskType === 'test' ? 'selected' : ''}>Test</option>
-          <option value="gap" ${lessonData.taskType === 'gap' ? 'selected' : ''}>Gap to‘ldirish</option>
-          <option value="file" ${lessonData.taskType === 'file' ? 'selected' : ''}>Fayl + izoh</option>
-        </select>
-        <button type="button" class="delete-lesson text-red-500">O‘chirish</button>
-      </div>
-      <div class="task-section">${getTaskSection(lessonData.taskType, lessonData.taskDesc || '')}</div>
-      <input type="file" class="lesson-video w-full border px-3 py-2 rounded" accept="video/mp4" />
-    `;
+  if (courseImg) {
+    const imgRef = ref(storage, `course_images/${user.uid}/${Date.now()}_${courseImg.name}`);
+    await uploadBytes(imgRef, courseImg);
+    imgUrl = await getDownloadURL(imgRef);
+  } else if (imgUrlInput) {
+    imgUrl = imgUrlInput;
+  }
 
-        lessonEl.querySelector('.delete-lesson').addEventListener('click', () => lessonEl.remove());
-        lessonEl.querySelector('.lesson-task-type').addEventListener('change', (e) => {
-            lessonEl.querySelector('.task-section').innerHTML = getTaskSection(e.target.value);
-        });
+  let previewVideoUrl = "";
+  const previewVideo = getEl("preview-video")?.files?.[0];
 
-        container.appendChild(lessonEl);
-    }
+  if (previewVideo) {
+    const videoRef = ref(storage, `preview_videos/${user.uid}/${Date.now()}_${previewVideo.name}`);
+    await uploadBytes(videoRef, previewVideo);
+    previewVideoUrl = await getDownloadURL(videoRef);
+  }
 
-    function getTaskSection(type, desc = '') {
-        if (!type) return '';
-        if (type === 'test') {
-            return `
-        <input type="text" placeholder="Savol" class="task-question w-full border px-3 py-2 rounded mb-2" value="${desc}" />
-        <input type="text" placeholder="A javobi" class="task-a w-full border px-3 py-1 rounded" />
-        <input type="text" placeholder="B javobi" class="task-b w-full border px-3 py-1 rounded" />
-        <input type="text" placeholder="C javobi" class="task-c w-full border px-3 py-1 rounded" />
-        <input type="text" placeholder="D javobi" class="task-d w-full border px-3 py-1 rounded" />
-      `;
-        }
-        return `<textarea placeholder="Izoh yoki topshiriq matni" class="lesson-task-desc w-full border px-3 py-2 rounded">${desc}</textarea>`;
-    }
+  const modules = [];
+  document.querySelectorAll(".module").forEach((modEl) => {
+    const modTitle = modEl.querySelector(".module-title")?.value?.trim() || "";
+    const lessons = [];
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const user = auth.currentUser;
-        const courseId = sessionStorage.getItem('editCourseId');
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const isDraft = e.submitter.id === 'save-draft';
+    modEl.querySelectorAll(".lesson").forEach((lessonEl) => {
+      const title = lessonEl.querySelector(".lesson-title")?.value?.trim() || "";
+      const duration = parseInt(lessonEl.querySelector(".lesson-duration")?.value || "0");
+      const taskType = lessonEl.querySelector(".lesson-task-type")?.value || "";
+      const taskDesc = lessonEl.querySelector(".lesson-task-desc, .task-question")?.value?.trim() || "";
+      const videoFile = lessonEl.querySelector(".lesson-video")?.files?.[0];
 
-        let previewVideoUrl = '';
-        const previewVideo = document.getElementById("preview-video").files[0];
-        if (previewVideo) {
-            const videoRef = ref(storage, `previews/${user.uid}/${Date.now()}_${previewVideo.name}`);
-            await uploadBytes(videoRef, previewVideo);
-            previewVideoUrl = await getDownloadURL(videoRef);
-        }
-
-        let imgUrl = '';
-        const courseImg = document.getElementById("course-img").files[0];
-        const courseImgUrlInput = document.getElementById("course-img-url").value.trim();
-
-        if (courseImg) {
-            // fayldan yuklaymiz
-            const imgRef = ref(storage, `course_images/${user.uid}/${Date.now()}_${courseImg.name}`);
-            await uploadBytes(imgRef, courseImg);
-            imgUrl = await getDownloadURL(imgRef);
-        } else if (courseImgUrlInput) {
-            // URL dan foydalanamiz
-            imgUrl = courseImgUrlInput;
-        }
-
-        const modules = [];
-        document.querySelectorAll(".module").forEach(modEl => {
-            const modTitle = modEl.querySelector(".module-title").value;
-            const lessons = [];
-            modEl.querySelectorAll(".lesson").forEach(lessonEl => {
-                const title = lessonEl.querySelector(".lesson-title").value;
-                const duration = parseInt(lessonEl.querySelector(".lesson-duration").value) || 0;
-                const taskType = lessonEl.querySelector(".lesson-task-type").value;
-                const taskDesc = lessonEl.querySelector(".lesson-task-desc, .task-question")?.value || '';
-                const videoFile = lessonEl.querySelector(".lesson-video").files[0];
-                lessons.push({ title, duration, taskType, taskDesc, videoFile });
-            });
-            modules.push({ title: modTitle, lessons });
-        });
-
-        for (let mod of modules) {
-            for (let lesson of mod.lessons) {
-                if (lesson.videoFile) {
-                    const videoRef = ref(storage, `lessons/${user.uid}/${Date.now()}_${lesson.videoFile.name}`);
-                    await uploadBytes(videoRef, lesson.videoFile);
-                    lesson.videoUrl = await getDownloadURL(videoRef);
-                } else {
-                    lesson.videoUrl = '';
-                }
-                delete lesson.videoFile;
-            }
-        }
-
-        const courseData = {
-            title: document.getElementById("course-title").value,
-            description: document.getElementById("course-description").value,
-            category: document.getElementById("course-category").value,
-            language: document.getElementById("course-language").value,
-            level: document.getElementById("course-level").value,
-            price: parseInt(document.getElementById("course-price").value) || 0,
-            isFree: document.getElementById("course-free").checked,
-            enableCertificate: document.getElementById("enable-certificate").checked,
-            previewVideoUrl,
-            authorId: user.uid,
-            authorName: currentUser.name || '',
-            updatedAt: new Date().toISOString(),
-            status: isDraft ? 'draft' : 'under_review',
-            modules,
-            imgUrl
-        };
-
-        try {
-            if (courseId) {
-                await updateDoc(doc(db, "courses", courseId), courseData);
-                sessionStorage.removeItem('editCourseId');
-            } else {
-                courseData.createdAt = new Date().toISOString();
-                courseData.enrollmentCount = 0;
-                courseData.averageRating = 0;
-                courseData.ratingCount = 0;
-                await addDoc(collection(db, "courses"), courseData);
-            }
-
-            alert(isDraft ? "Qoralama saqlandi" : "Kurs yuborildi!");
-            window.location.href = "/instructor/courses.html";
-        } catch (err) {
-            console.error("Xatolik:", err);
-            alert("Xatolik yuz berdi: " + err.message);
-        }
+      lessons.push({ title, duration, taskType, taskDesc, videoFile });
     });
-});
+
+    modules.push({ title: modTitle, lessons });
+  });
+
+  for (const module of modules) {
+    for (const lesson of module.lessons) {
+      if (lesson.videoFile) {
+        const videoRef = ref(storage, `lesson_videos/${user.uid}/${Date.now()}_${lesson.videoFile.name}`);
+        await uploadBytes(videoRef, lesson.videoFile);
+        lesson.videoUrl = await getDownloadURL(videoRef);
+      } else {
+        lesson.videoUrl = "";
+      }
+      delete lesson.videoFile;
+    }
+  }
+
+  return {
+    title: getVal("course-title"),
+    description: getVal("course-description"),
+    category: getVal("course-category"),
+    language: getVal("course-language"),
+    level: getVal("course-level"),
+    price: parseInt(getVal("course-price")) || 0,
+    isFree: getEl("course-free")?.checked || false,
+    enableCertificate: getEl("enable-certificate")?.checked || false,
+    imgUrl,
+    previewVideoUrl,
+    modules,
+    authorId: user.uid,
+    authorName: getVal("author-name") || currentUser?.name || "",
+    centerName: getVal("center-name") || currentUser?.centerName || "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    status,
+    enrollmentCount: 0,
+    averageRating: 0,
+    ratingCount: 0,
+  };
+}
+
+async function saveCourse(courseData) {
+  const courseId = sessionStorage.getItem('editCourseId');
+
+  if (courseId) {
+    await updateDoc(doc(db, "courses", courseId), {
+      ...courseData,
+      updatedAt: new Date().toISOString(),
+    });
+    sessionStorage.removeItem('editCourseId');
+  } else {
+    await addDoc(collection(db, "courses"), courseData);
+  }
+
+  alert(courseData.status === "draft" ? "Qoralama saqlandi" : "Ko‘rib chiqishga yuborildi!");
+  window.location.href = "/instructor/courses.html";
+}
+

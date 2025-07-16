@@ -11,7 +11,6 @@
     <link rel="manifest" href="../photos/site.webmanifest" />
     <title>Mening Kurslarim | EdBase</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    <script type="module" src="./myCourses.js" defer></script>
 </head>
 
 <body class="bg-gray-50 min-h-screen flex overflow-hidden">
@@ -50,115 +49,12 @@
 
         <!-- Content -->
         <section class="flex-1 overflow-auto w-full max-w-6xl mx-auto px-6 py-8">
-            <div id="myCourses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Kurs kartalari shu yerga yuklanadi -->
-            </div>
+            <div id="myCourses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <p id="noCoursesText" class="text-center text-gray-500 mt-6 hidden">Hech qanday mos kurs topilmadi.</p>
         </section>
     </main>
 
-    <!-- Firebase -->
-    <script type="module">
-        import { db } from '../js/firebase-config.js';
-        import {
-            doc,
-            getDoc
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // 👤 Mahalliy foydalanuvchi
-        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-        if (!currentUser || currentUser.role !== "student") {
-            window.location.href = "/auth.html?redirectUrl=/student/myCourses.html";
-        }
-
-        const logoutBtn = document.getElementById("logoutBtn");
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("currentUser");
-            window.location.href = "/auth.html";
-        });
-
-        const myCoursesBox = document.getElementById("myCourses");
-
-        async function loadMyCourses(uid) {
-            try {
-                const userSnap = await getDoc(doc(db, "users", uid));
-                const userData = userSnap.data();
-                const enrolled = Array.isArray(userData?.enrolledCourses) ? userData.enrolledCourses : [];
-
-                if (enrolled.length === 0) {
-                    myCoursesBox.innerHTML = `<p class="col-span-full text-gray-500">Sizda hali kurslar mavjud emas.</p>`;
-                    return;
-                }
-
-                for (const courseId of enrolled) {
-                    const courseSnap = await getDoc(doc(db, "courses", courseId));
-                    if (!courseSnap.exists()) continue;
-                    const course = courseSnap.data();
-
-                    // 🔁 Progress hisoblash
-                    let totalLessons = 0;
-                    let completedLessons = 0;
-                    let lastWatchedTitle = "Boshlanmagan";
-                    let lastWatchedAt = null;
-
-                    if (Array.isArray(course.modules)) {
-                        for (const module of course.modules) {
-                            const lessons = module.lessons || [];
-                            totalLessons += lessons.length;
-
-                            for (const lesson of lessons) {
-                                if (!lesson?.id) continue;
-
-                                const progressRef = doc(db, "users", uid, "lessonProgress", lesson.id);
-                                const progressSnap = await getDoc(progressRef);
-                                if (progressSnap.exists()) {
-                                    completedLessons++;
-
-                                    const watchedAt = progressSnap.data().watchedAt?.toDate?.();
-                                    if (!lastWatchedAt || (watchedAt && watchedAt > lastWatchedAt)) {
-                                        lastWatchedAt = watchedAt;
-                                        lastWatchedTitle = lesson.title;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    const progressPercent = totalLessons ? Math.floor((completedLessons / totalLessons) * 100) : 0;
-
-                    const card = document.createElement("div");
-                    card.className = "bg-white p-4 rounded shadow hover:shadow-md transition";
-
-                    card.innerHTML = `
-            <img src="${course.image}" alt="${course.title}" class="w-full h-40 object-cover rounded mb-3" />
-            <h3 class="text-lg font-bold text-gray-800 mb-1">${course.title}</h3>
-            <p class="text-sm text-gray-600 mb-1">👨‍🏫 ${course.instructorName}</p>
-            <p class="text-sm text-gray-500 mb-2">💰 ${course.price}</p>
-
-            <div class="mb-2">
-              <div class="w-full bg-gray-200 h-2 rounded-full">
-                <div class="h-2 bg-indigo-500 rounded-full" style="width: ${progressPercent}%;"></div>
-              </div>
-              <p class="text-xs text-gray-500 mt-1">${completedLessons}/${totalLessons} dars (${progressPercent}%)</p>
-            </div>
-
-            <p class="text-xs text-gray-500 mb-2">▶️ Oxirgi dars: ${lastWatchedTitle}</p>
-
-            <a href="learn.html?courseId=${courseId}" class="inline-block mt-2 bg-indigo-600 text-white px-4 py-2 text-sm rounded hover:bg-indigo-700 transition">
-              Davom etish
-            </a>
-          `;
-
-                    myCoursesBox.appendChild(card);
-                }
-
-            } catch (err) {
-                console.error("❌ Kurslarni yuklashda xatolik:", err);
-                myCoursesBox.innerHTML = `<p class="col-span-full text-red-500">Kurslarni yuklashda xatolik yuz berdi.</p>`;
-            }
-        }
-
-        loadMyCourses(currentUser.uid);
-    </script>
+    <script type="module" src="./myCourses.js" defer></script>
 
     <script>
         const sidebar = document.getElementById('sidebar');
