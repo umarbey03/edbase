@@ -105,7 +105,7 @@ async function renderCourses() {
        class="mt-2 inline-block bg-indigo-600 text-white text-sm px-4 py-2 rounded hover:bg-indigo-700 transition">
       ➡️ Davom etish
     </a>
-  `;
+    `;
 
     coursesGrid.appendChild(card);
   }

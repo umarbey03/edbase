@@ -13,7 +13,7 @@
     <script type="module" src="./js/main.js"></script>
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         @keyframes bounce-slow {
 
@@ -37,6 +37,25 @@
             50% {
                 transform: translateY(4px);
             }
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .user {
+            background-color: #dbeafe;
+        }
+
+        .bot {
+            background-color: #f0fdf4;
+        }
+
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
         }
     </style>
 
@@ -64,7 +83,9 @@
                 <!-- 👤 Guest (Not logged in) -->
                 <div id="authButtons" class="flex gap-4">
                     <a href="/auth.html?mode=login" class="text-gray-700 hover:text-indigo-600 p-2">Kirish</a>
-                    <a href="/auth.html?mode=register" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">Ro‘yxatdan o‘tish</a>
+                    <a href="/auth.html?mode=register"
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">Ro‘yxatdan
+                        o‘tish</a>
                 </div>
 
                 <!-- ✅ Logged in -->
@@ -557,6 +578,46 @@
 
         <p class="text-center text-xs text-gray-500 mt-10">© 2025 EdBase. Barcha huquqlar himoyalangan.</p>
     </footer>
+
+    <!-- 💬 Floating Chat Button -->
+    <button id="openChatBtn"
+        class="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-indigo-500 text-white p-4 rounded-full shadow-xl hover:scale-105 transition-transform duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 8h10M7 12h6m-6 4h4M5 20l-2-2V6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5z" />
+        </svg>
+    </button>
+
+    <!-- 💬 Chat Modal -->
+    <div id="chatModal"
+        class="fixed bottom-20 right-6 w-80 h-[45vh] bg-white border border-gray-300 rounded-xl shadow-lg hidden flex flex-col overflow-hidden z-50">
+
+        <!-- Header -->
+        <div
+            class="bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-4 py-3 flex justify-between items-center">
+            <h3 class="text-sm font-semibold">🤖 EdBase Support Bot</h3>
+            <button id="closeChatBtn" class="text-white text-xl leading-none hover:text-gray-200">&times;</button>
+        </div>
+
+        <!-- Chat Body -->
+        <div id="chatMessages" class="flex-1 p-4 space-y-2 overflow-y-auto text-sm text-gray-800 scroll-smooth">
+            <div class="text-gray-500 italic">Xush kelibsiz! Savollaringizni shu yerga yozing 👇</div>
+        </div>
+
+        <!-- Input Area -->
+        <form id="chatForm" class="flex items-center border-t border-gray-200">
+            <input type="text" id="chatInput" placeholder="Savolingizni yozing..."
+                class="flex-1 p-3 text-sm outline-none placeholder-gray-400" autocomplete="off" />
+            <button type="submit" class="bg-[#045d8f] text-white px-3 py-2 rounded-lg text-sm hover:bg-[#03486f]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M9.5 13.5l-.4 4.1c.6 0 .9-.2 1.3-.6l2-1.9 4.1 3c.8.4 1.3.2 1.5-.7l2.7-12.6c.3-1.2-.4-1.7-1.3-1.4L2.9 10.9c-1.2.4-1.2 1.2-.2 1.5l4.5 1.4L18.1 7.2c.4-.2.8 0 .6.3L9.5 13.5z" />
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <script type="module" src="./js/chat.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>

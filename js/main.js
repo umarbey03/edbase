@@ -77,17 +77,29 @@ async function loadPopularCourses() {
     querySnapshot.forEach(doc => {
       const course = doc.data();
       const priceText = course.price === 0 ? "Bepul" : `${course.price.toLocaleString()} so‘m`;
-      const ratingStars = "⭐️".repeat(Math.round(course.rating || 0));
+      const ratingStars = "⭐️".repeat(Math.round(course.avarageRating || 0));
 
       container.innerHTML += `
         <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
-          <img src="${course.image || 'https://via.placeholder.com/400x200'}"
+          <img src="${course.imgUrl || 'https://via.placeholder.com/400x200'}"
                alt="${course.title}"
                class="rounded-md mb-4 w-full h-40 object-cover" />
           <h3 class="text-lg font-semibold mb-1">${course.title}</h3>
-          <p class="text-sm text-gray-600 mb-2">👨‍🏫 <span class="font-medium">${course.instructorName || 'Noma’lum'}</span></p>
+          <div class="text-sm text-gray-600 my-2">
+      👨‍🏫 <span>${course.authorName}</span><br>
+      🏫 <span>${course.centerName}</span>
+    </div>
+
+    <div class="flex items-center justify-between text-xs text-gray-500 my-2 font-medium">
+      <span>📘 ${course.level}</span>
+      <span>🌐 ${course.language}</span>
+    </div>
           <p class="text-sm text-gray-700 mb-2">💰 <span class="font-medium">${priceText}</span></p>
-          <p class="text-sm text-yellow-500 mb-4">${ratingStars} (${course.rating || 0})</p>
+          ${course.enableCertificate
+        ? `<span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded w-fit">📄 Sertifikat mavjud</span>`
+        : `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded w-fit">Sertifikatsiz</span>`
+      }
+          <p class="text-sm text-yellow-500 my-4">⭐️ ${ratingStars} (${course.averageRating || 0})</p>
           <a href="/course.html?id=${doc.id}"
              class="inline-block text-sm bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
             Batafsil
