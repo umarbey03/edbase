@@ -98,7 +98,7 @@ const appendMessage = (role, text, aiName = null) => {
     }
     const msgDiv = document.createElement("div");
     msgDiv.className = role === 'user' ? 'text-right' : 'text-left';
-    const aiPrefix = aiName ? `<span class="font-semibold text-indigo-600">[${aiName}] </span>` : '';
+    const aiPrefix = aiName ? `<span class="font-semibold block text-indigo-600">[${aiName}] </span>` : '';
     msgDiv.innerHTML = `
         <div class="${role === 'user'
             ? 'bg-blue-100 text-blue-900 ml-auto'
