@@ -45,7 +45,7 @@ async function loadCategories() {
     
     <p class="text-sm text-gray-600 mt-2">${cat.description}</p>
   </a>
-`;
+  `;
 
     });
 
