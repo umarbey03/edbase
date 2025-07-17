@@ -8,7 +8,7 @@ let apiKeys = {
     gemini: null
 };
 
-document.getElementById("chatModal").classList = "fixed bottom-20 right-6 w-90 h-[45vh] bg-white border border-gray-300 rounded-xl shadow-lg hidden flex flex-col overflow-hidden z-50"
+document.getElementById("chatModal").classList = "fixed bottom-20 right-6 w-95 h-[45vh] bg-white border border-gray-300 rounded-xl shadow-lg hidden flex flex-col overflow-hidden z-50"
 document.getElementById("chatModal").innerHTML = `
 <!-- Header -->
         <div
