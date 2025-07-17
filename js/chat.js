@@ -1,14 +1,14 @@
 import { db } from './firebase-config.js';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔐 API kalitlarni olish (Firebase'dan)
+// 🔐 Load API keys from Firestore
 let apiKeys = {
     openai: null,
     openrouter: null,
     gemini: null
 };
 
-document.getElementById("chatModal").classList = "fixed bottom-20 right-6 w-95 h-[45vh] bg-white border border-gray-300 rounded-xl shadow-lg hidden flex flex-col overflow-hidden z-50"
+document.getElementById("chatModal").classList = "fixed bottom-20 right-6 w-80 h-[45vh] bg-white border border-gray-300 rounded-xl shadow-lg hidden flex flex-col overflow-hidden z-50"
 document.getElementById("chatModal").innerHTML = `
 <!-- Header -->
         <div
@@ -46,22 +46,22 @@ const loadApiKeys = async () => {
                 const key = docSnap.data().apiKey;
                 if (key && typeof key === 'string' && key.trim() !== '') {
                     apiKeys[service] = key.trim();
-                    // console.log(`✅ ${service} kaliti yuklandi: ${key.substring(0, 5)}...`);
+                    // console.log(`✅ ${service} key loaded: ${key.substring(0, 5)}...`);
                 } else {
-                    console.error(`❌ ${service} kaliti noto'g'ri yoki bo'sh`);
+                    // console.error(`❌ ${service} key is invalid or empty`);
                 }
             } else {
-                console.error(`❌ Firestore'da 'settings/${service}' hujjati topilmadi`);
+                // console.error(`❌ Firestore document 'settings/${service}' not found`);
             }
         }
         return Object.values(apiKeys).some(key => key !== null);
     } catch (err) {
-        console.error("❌ Firebase API kalitlarini olishda xatolik:", err);
+        // console.error("❌ Error loading Firebase API keys:", err);
         return false;
     }
 };
 
-// 🎯 UI elementlar
+// 🎯 UI elements
 const chatToggleBtn = document.getElementById("openChatBtn");
 const chatModal = document.getElementById("chatModal");
 const closeChatBtn = document.getElementById("closeChatBtn");
@@ -69,7 +69,7 @@ const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const chatMessages = document.getElementById("chatMessages");
 
-// 📦 Chat oynasini boshqarish
+// 📦 Chat modal management
 document.addEventListener("DOMContentLoaded", async () => {
     const apiKeysLoaded = await loadApiKeys();
     if (!apiKeysLoaded) {
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-// 💬 Yangi xabar ko‘rsatish
+// 💬 Display new message
 const appendMessage = (role, text, aiName = null) => {
     if (!chatMessages) {
         // console.error("❌ chatMessages elementi topilmadi");
@@ -98,20 +98,22 @@ const appendMessage = (role, text, aiName = null) => {
     }
     const msgDiv = document.createElement("div");
     msgDiv.className = role === 'user' ? 'text-right' : 'text-left';
-    const aiPrefix = aiName ? `<span class="font-semibold block text-indigo-600">[${aiName}] </span>` : '';
+    const aiPrefix = aiName ? `<span class="font-semibold text-indigo-600">[${aiName}] </span>` : '';
     msgDiv.innerHTML = `
         <div class="${role === 'user'
             ? 'bg-blue-100 text-blue-900 ml-auto'
             : 'bg-gray-100 text-gray-800 mr-auto'}
-            inline-block px-3 py-2 rounded-xl max-w-[80%] text-sm">
+            inline-block px-3 py-2 rounded-xl max-w-[80%] text-sm message-text">
             ${aiPrefix}${text}
         </div>`;
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 };
 
-// 🧠 AI'dan javob olish
+// 🧠 Get AI response with IT domain restriction and registration prompt
 async function getAIReply(prompt) {
+    const systemPrompt = `You are an expert in IT (Information Technology). Provide a brief answer (1-2 sentences) to IT-related questions (e.g., programming, software development, cybersecurity, IT infrastructure). For detailed answers, prompt the user to register and use the student panel at https://edbase.uz/auth.html, including an HTML button: <button onclick="window.location.href='/auth.html?mode=register'" class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">More</button>. If the question is outside IT, politely decline and ask for an IT-related question.`;
+
     const services = [
         {
             name: 'OpenAI',
@@ -123,7 +125,10 @@ async function getAIReply(prompt) {
             }),
             body: () => ({
                 model: "gpt-3.5-turbo",
-                messages: [{ role: "user", content: prompt }],
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: prompt }
+                ],
                 stream: false
             }),
             parseResponse: (data) => data.choices[0].message.content
@@ -140,7 +145,10 @@ async function getAIReply(prompt) {
             }),
             body: () => ({
                 model: "openai/gpt-3.5-turbo",
-                messages: [{ role: "user", content: prompt }],
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: prompt }
+                ],
                 stream: false
             }),
             parseResponse: (data) => data.choices[0].message.content
@@ -153,7 +161,13 @@ async function getAIReply(prompt) {
                 "Content-Type": "application/json"
             }),
             body: () => ({
-                contents: [{ parts: [{ text: prompt }] }]
+                contents: [
+                    {
+                        parts: [
+                            { text: `${systemPrompt}\n\nUser: ${prompt}` }
+                        ]
+                    }
+                ]
             }),
             parseResponse: (data) => data.candidates[0].content.parts[0].text
         }
@@ -161,7 +175,7 @@ async function getAIReply(prompt) {
 
     for (const service of services) {
         if (!service.key) {
-            // console.warn(`❌ ${service.name} kaliti mavjud emas, o'tkazib yuborilmoqda`);
+            // console.warn(`❌ ${service.name} key not available, skipping`);
             continue;
         }
 
@@ -174,24 +188,24 @@ async function getAIReply(prompt) {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                // console.error(`❌ ${service.name} xatosi:`, JSON.stringify(errorData, null, 2));
-                continue; // Keyingi xizmatga o'tish
+                // console.error(`❌ ${service.name} error:`, JSON.stringify(errorData, null, 2));
+                continue;
             }
 
             const data = await response.json();
             const reply = service.parseResponse(data);
-            // console.log(`✅ ${service.name} javobi olindi`);
+            // console.log(`✅ ${service.name} response received`);
             return { reply, aiName: service.name };
         } catch (error) {
-            // console.error(`❌ ${service.name} tarmoq xatosi:`, error);
-            continue; // Keyingi xizmatga o'tish
+            // console.error(`❌ ${service.name} network error:`, error);
+            continue;
         }
     }
 
-    return { reply: "❌ Hech qaysi AI javob bermadi. Administrator bilan bog'laning.", aiName: null };
+    return { reply: "❌ No AI responded. Contact the administrator.", aiName: null };
 }
 
-// 📤 Xabar yuborish formasi
+// 📤 Message submission form
 if (chatForm) {
     chatForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -203,7 +217,7 @@ if (chatForm) {
         appendMessage('bot', "⏳ Yozmoqda...");
 
         const { reply, aiName } = await getAIReply(message);
-        chatMessages.lastChild.remove(); // Yuklanmoqda xabarini o'chirish
+        chatMessages.lastChild.remove();
         appendMessage('bot', reply, aiName);
     });
 }

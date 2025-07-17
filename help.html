@@ -251,16 +251,17 @@
   <!-- 💬 Chat Modal -->
   <div id="chatModal"
     class="fixed bottom-20 right-6 w-80 h-[45vh] bg-white border border-gray-300 rounded-xl shadow-lg hidden flex flex-col overflow-hidden z-50">
-
     <!-- Header -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-4 py-3 flex justify-between items-center">
       <h3 class="text-sm font-semibold">🤖 EdBase Support Bot</h3>
-      <button id="closeChatBtn" class="text-white text-xl leading-none hover:text-gray-200">&times;</button>
+      <button id="closeChatBtn" class="text-white text-xl leading-none hover:text-gray-200">×</button>
     </div>
 
     <!-- Chat Body -->
-    <div id="chatMessages" class="flex-1 p-4 space-y-2 overflow-y-auto text-sm text-gray-800 scroll-smooth">
+    <div id="chatMessages"
+      class="flex-1 p-4 space-y-2 overflow-y-auto text-sm text-gray-800 scroll-smooth chat-container">
       <div class="text-gray-500 italic">Xush kelibsiz! Savollaringizni shu yerga yozing 👇</div>
+      <div class="text-gray-500 italic">OpenAI, OpenRouter va Gemini AI’lardan javob olinadi.</div>
     </div>
 
     <!-- Input Area -->
